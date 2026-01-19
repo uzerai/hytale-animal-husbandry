@@ -1,0 +1,22 @@
+{
+    "Group": "uzerai",
+    "Name": "AnimalHusbandry",
+    "Version": "0.0.2",
+    "Description": "An animal husbandry plugin for Hytale.",
+    "Authors": [
+        {
+            "Name": "uzerai"
+        }
+    ],
+    "Website": "",
+    "ServerVersion": "*",
+    "Dependencies": {
+        
+    },
+    "OptionalDependencies": {
+        
+    },
+    "DisabledByDefault": false,
+    "Main": "com.uzerai.animalhusbandry.AnimalHusbandryPlugin",
+    "IncludesAssetPack": true
+}
