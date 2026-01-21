@@ -1,44 +1,44 @@
 package com.uzerai.animalhusbandry.config;
 
-import com.hypixel.hytale.assetstore.AssetExtraInfo;
-import com.hypixel.hytale.assetstore.codec.AssetBuilderCodec;
-import com.hypixel.hytale.assetstore.map.DefaultAssetMap;
-import com.hypixel.hytale.assetstore.map.JsonAssetWithMap;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
 
 import javax.annotation.Nonnull;
 
-public class AnimalHusbandry implements JsonAssetWithMap<String, DefaultAssetMap<String, AnimalHusbandry>> {
-    public static final AssetBuilderCodec<String, AnimalHusbandry> CODEC = AssetBuilderCodec.builder(
-                    AnimalHusbandry.class,
-                    AnimalHusbandry::new,
-                    Codec.STRING,
-                    (config, id) -> config.id = id,
-                    AnimalHusbandry::getId,
-                    (asset, data) -> asset.data = data,
-                    asset -> asset.data)
-            .append(new KeyedCodec<>("Enabled", Codec.BOOLEAN), (o, i) -> o.enabled = i, (o) -> o.enabled)
-            .add()
-            .append(new KeyedCodec<>("GrowthTickInterval", Codec.INTEGER), (o, i) -> o.growthTickInterval = i, (o) -> o.growthTickInterval)
-            .add()
-            .build();
+public class AnimalHusbandry {
+    public static final BuilderCodec<AnimalHusbandry> CODEC =
+            BuilderCodec.builder(AnimalHusbandry.class, AnimalHusbandry::new)
+                    .append(new KeyedCodec<>("GrowthEnabled", Codec.BOOLEAN),
+                            (cfg, v) -> cfg.growthEnabled = v,
+                            cfg -> cfg.growthEnabled)
+                    .add()
+                    .append(new KeyedCodec<>("BreedingEnabled", Codec.BOOLEAN),
+                            (cfg, v) -> cfg.breedingEnabled = v,
+                            cfg -> cfg.breedingEnabled)
+                    .add()
+                    .build();
 
-    public String id;
-    public AssetExtraInfo.Data data;
-    public boolean enabled;
-    public int growthTickInterval;
+    public boolean growthEnabled = true;
+    public boolean breedingEnabled = true;
 
     public AnimalHusbandry() {}
 
-    @Override
-    public String getId() {
-        return this.id;
+    public boolean isGrowthEnabled() {
+        return growthEnabled;
     }
 
-    @Override
+    public boolean isBreedingEnabled(){
+        return breedingEnabled;
+    }
+
     @Nonnull
+    @Override
     public String toString() {
-        return String.format("AnimalHusbandryConfig { enabled: %s, growthStageInterval: %s }", enabled, growthTickInterval);
+        return String.format(
+                "AnimalHusbandryConfig { growthEnabled: %s, breedingEnabled: %s }",
+                growthEnabled,
+                breedingEnabled
+        );
     }
 }

@@ -13,9 +13,9 @@ import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.systems.RoleChangeSystem;
+import com.uzerai.animalhusbandry.AnimalHusbandryPlugin;
 
 import javax.annotation.Nonnull;
-import javax.sound.sampled.AudioSystem;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAmount;
@@ -24,17 +24,24 @@ public final class GrowthSystem extends TickingSystem<EntityStore> {
 
     @Nonnull
     private final ComponentType<EntityStore, NPCEntity> npcComponentType;
+    @Nonnull
+    private final ComponentType<EntityStore, GrowthComponent> growthComponentType;
 
-    public GrowthSystem(@Nonnull ComponentType<EntityStore, NPCEntity> npcComponentType) {
+    public GrowthSystem(@Nonnull ComponentType<EntityStore, NPCEntity> npcComponentType,
+                        @Nonnull ComponentType<EntityStore, GrowthComponent> growthComponentType) {
         this.npcComponentType = npcComponentType;
+        this.growthComponentType = growthComponentType;
     }
 
     @Override
     public void tick(float dt, int systemIndex, @Nonnull Store<EntityStore> store) {
+        if (!AnimalHusbandryPlugin.get().getConfig().isGrowthEnabled()) {
+            return;
+        }
         WorldTimeResource time = store.getResource(WorldTimeResource.getResourceType());
         Instant now = time.getGameTime();
 
-        store.forEachChunk(NPCEntity.getComponentType(), (chunk, commandBuffer) -> {
+        store.forEachChunk(growthComponentType, (chunk, commandBuffer) -> {
             for (int i = 0; i < chunk.size(); i++) {
                 NPCEntity npc = chunk.getComponent(i, npcComponentType);
                 if (npc == null) continue;
@@ -43,7 +50,7 @@ public final class GrowthSystem extends TickingSystem<EntityStore> {
                 String roleName = role.getRoleName();
 
                 GrowthAsset asset =
-                        GrowthAsset.getAssetMap().getAsset(roleName); // key by calf role name
+                        GrowthAsset.getAssetMap().getAsset(roleName);
                 if (asset == null) continue;
 
                 // Compute when this NPC should grow up
@@ -65,7 +72,7 @@ public final class GrowthSystem extends TickingSystem<EntityStore> {
                         role,
                         adultIndex,
                         asset.shouldChangeAppearance(),
-                        null,
+                        role.getStateSupport().getStateName(),
                         null,
                         store
                 );
