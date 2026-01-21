@@ -1,0 +1,6 @@
+{
+  "AdultRole": "Cow",
+  "AgeToGrow": "T3M",
+  "ChangeAppearance": true,
+  "GrowthSoundEffectId": "SFX_Crops_Grow_Stage_Complete"
+}

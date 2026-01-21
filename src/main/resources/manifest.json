@@ -11,10 +11,8 @@
     "Website": "",
     "ServerVersion": "*",
     "Dependencies": {
-        
-    },
-    "OptionalDependencies": {
-        
+        "Hytale:NPC": "*",
+        "Hytale:I18nModule": "*"
     },
     "DisabledByDefault": false,
     "Main": "com.uzerai.animalhusbandry.AnimalHusbandryPlugin",
