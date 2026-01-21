@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
+import com.hypixel.hytale.server.npc.role.support.StateSupport;
 import com.hypixel.hytale.server.npc.systems.RoleChangeSystem;
 import com.uzerai.animalhusbandry.AnimalHusbandryPlugin;
 
@@ -49,8 +50,7 @@ public final class GrowthSystem extends TickingSystem<EntityStore> {
                 Role role = npc.getRole();
                 String roleName = role.getRoleName();
 
-                GrowthAsset asset =
-                        GrowthAsset.getAssetMap().getAsset(roleName);
+                GrowthAsset asset = GrowthAsset.getAssetMap().getAsset(roleName);
                 if (asset == null) continue;
 
                 // Compute when this NPC should grow up
@@ -67,13 +67,16 @@ public final class GrowthSystem extends TickingSystem<EntityStore> {
                 }
 
                 Ref<EntityStore> ref = chunk.getReferenceTo(i);
+                StateSupport roleStateSupport = role.getStateSupport();
+                int roleStateIndex = roleStateSupport.getStateIndex();
+                int roleSubstateIndex = roleStateSupport.getSubStateIndex();
                 RoleChangeSystem.requestRoleChange(
                         ref,
                         role,
                         adultIndex,
                         asset.shouldChangeAppearance(),
-                        role.getStateSupport().getStateName(),
-                        null,
+                        roleStateSupport.getStateHelper().getStateName(roleStateIndex),
+                        roleStateSupport.getStateHelper().getSubStateName(roleStateIndex, roleSubstateIndex),
                         store
                 );
 

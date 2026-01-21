@@ -1,0 +1,6 @@
+{
+  "$Comment": "Growth configuration; AgeToGrow is in in-game time",
+  "AgeToGrow": "T1M",
+  "ChangeAppearance": true,
+  "GrowthSoundEffectId": "SFX_Crops_Grow_Stage_Complete"
+}

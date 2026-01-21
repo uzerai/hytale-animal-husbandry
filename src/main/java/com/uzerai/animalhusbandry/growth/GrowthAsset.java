@@ -36,18 +36,25 @@ public final class GrowthAsset implements JsonAssetWithMap<String, DefaultAssetM
                     .append(new KeyedCodec<>("AdultRole", Codec.STRING),
                             (asset, v) -> asset.adultRole = v,
                             asset -> asset.adultRole)
+                    .documentation("The adult Role into which the growing NPCEntity will transform.")
                     .add()
-                    .append(new KeyedCodec<>("AgeToGrow", Codec.STRING),
+                    .appendInherited(new KeyedCodec<>("AgeToGrow", Codec.STRING),
                             (asset, v) -> asset.ageToGrowRaw = v,
-                            asset -> asset.ageToGrowRaw)
+                            asset -> asset.ageToGrowRaw,
+                            (asset, parent) -> asset.ageToGrowRaw = parent.ageToGrowRaw)
+                    .documentation("In-game time until growth from initial spawn time of the entity.")
                     .add()
-                    .append(new KeyedCodec<>("ChangeAppearance", Codec.BOOLEAN),
+                    .appendInherited(new KeyedCodec<>("ChangeAppearance", Codec.BOOLEAN),
                             (asset, v) -> asset.changeAppearance = v,
-                            asset -> asset.changeAppearance)
+                            asset -> asset.changeAppearance,
+                            (asset, parent) -> asset.changeAppearance = parent.changeAppearance)
+                    .documentation("Whether the Role change should invoke an appearance change. Useful if we ever want to support growth for non-calf entities which grow into bigger roles.")
                     .add()
-                    .append(new KeyedCodec<>("GrowthSoundEffectId", Codec.STRING),
+                    .appendInherited(new KeyedCodec<>("GrowthSoundEffectId", Codec.STRING),
                             (asset, v) -> asset.growthSoundEffectId = v,
-                            asset -> asset.growthSoundEffectId)
+                            asset -> asset.growthSoundEffectId,
+                            (asset, parent) -> asset.growthSoundEffectId = parent.growthSoundEffectId)
+                    .documentation("Sound effect to play when the entity transitions into its AdultRole")
                     .add()
                     .afterDecode(asset -> {
                         if (asset.growthSoundEffectId != null) {

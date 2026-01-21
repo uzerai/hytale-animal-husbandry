@@ -41,6 +41,11 @@ public class AnimalHusbandryPlugin extends JavaPlugin {
 
     @Override
     protected void setup() {
+        // TODO: Add breeding system
+        // TODO: Add ownership / tameness system, to override avoidance for NPCs which are "tamed" by the player.
+        // TODO: Add feeding to accelerate growth (?)
+        // TODO: Add interaction to feed animals based on the Role's "Loved" foods (?)
+
         // Growth system registration
         this.growthComponentType = getEntityStoreRegistry().registerComponent(GrowthComponent.class, GrowthComponent::new);
 
@@ -54,7 +59,6 @@ public class AnimalHusbandryPlugin extends JavaPlugin {
 
         getEntityStoreRegistry().registerSystem(new GrowthRegisterSystem(NPCEntity.getComponentType(), getGrowthComponentType()));
         getEntityStoreRegistry().registerSystem(new GrowthSystem(NPCEntity.getComponentType(), getGrowthComponentType()));
-
     }
 
     @Override
