@@ -1,4 +1,5 @@
 {
   "Parent": "_Default",
-  "AdultRole": "Chicken"
+  "AdultRole": "Chicken",
+  "$Comment": "Chicken Chick → Chicken"
 }
