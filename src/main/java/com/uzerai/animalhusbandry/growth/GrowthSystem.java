@@ -1,5 +1,11 @@
 package com.uzerai.animalhusbandry.growth;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
+
+import javax.annotation.Nonnull;
+
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -15,11 +21,6 @@ import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.StateSupport;
 import com.hypixel.hytale.server.npc.systems.RoleChangeSystem;
 import com.uzerai.animalhusbandry.AnimalHusbandryPlugin;
-
-import javax.annotation.Nonnull;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
 
 public final class GrowthSystem extends TickingSystem<EntityStore> {
 
@@ -70,27 +71,27 @@ public final class GrowthSystem extends TickingSystem<EntityStore> {
                 StateSupport roleStateSupport = role.getStateSupport();
                 int roleStateIndex = roleStateSupport.getStateIndex();
                 int roleSubstateIndex = roleStateSupport.getSubStateIndex();
-                RoleChangeSystem.requestRoleChange(
-                        ref,
-                        role,
-                        adultIndex,
-                        asset.shouldChangeAppearance(),
-                        roleStateSupport.getStateHelper().getStateName(roleStateIndex),
-                        roleStateSupport.getStateHelper().getSubStateName(roleStateIndex, roleSubstateIndex),
-                        store
-                );
 
-                int soundIndex = asset.getGrowSoundEventIndex();
-                if (soundIndex != 0) {
-                    TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
-                    if (transform != null) {
-                        Vector3d pos = transform.getPosition();
-                        // Store implements ComponentAccessor<EntityStore>, so this matches ActionPlaySound:
-                        SoundUtil.playSoundEvent3d(ref, soundIndex, pos.getX(), pos.getY(), pos.getZ(), false, store);
+                if (!role.isRoleChangeRequested()) {
+                    RoleChangeSystem.requestRoleChange(
+                            ref,
+                            role,
+                            adultIndex,
+                            asset.shouldChangeAppearance(),
+                            roleStateSupport.getStateHelper().getStateName(roleStateIndex),
+                            roleStateSupport.getStateHelper().getSubStateName(roleStateIndex, roleSubstateIndex),
+                            store
+                    );
+
+                    int soundIndex = asset.getGrowSoundEventIndex();
+                    if (soundIndex != 0) {
+                        TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
+                        if (transform != null) {
+                            Vector3d pos = transform.getPosition();
+                            SoundUtil.playSoundEvent3d(ref, soundIndex, pos.getX(), pos.getY(), pos.getZ(), false, store);
+                        }
                     }
                 }
-
-                role.setReachedTerminalAction(true);
             }
         });
     }

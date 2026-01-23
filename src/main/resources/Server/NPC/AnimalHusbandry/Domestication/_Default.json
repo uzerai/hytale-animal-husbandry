@@ -1,0 +1,10 @@
+{
+  "$Comment": "Domestication configuration template",
+  "DomesticationThreshold": 120,
+  "DomesticationSoundEffectId": "SFX_Crops_Grow_Stage_Complete",
+  "DomesticationGainChance": 0.3,
+  "DomesticationGainAmount": 10,
+  "LovedItems": [
+    "Item_Crop_Wheat_Item"
+  ]
+}

@@ -1,12 +1,17 @@
 package com.uzerai.animalhusbandry.growth;
 
-import com.hypixel.hytale.component.*;
+import javax.annotation.Nonnull;
+
+import com.hypixel.hytale.component.AddReason;
+import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
-
-import javax.annotation.Nonnull;
 
 public final class GrowthRegisterSystem extends RefSystem<EntityStore> {
     @Nonnull
@@ -31,7 +36,7 @@ public final class GrowthRegisterSystem extends RefSystem<EntityStore> {
 
         String roleName = npc.getRoleName();
         if (GrowthAsset.getAssetMap().getAsset(roleName) == null) {
-            return; // no growth config for this role
+            return;
         }
 
         if (store.getComponent(ref, growthComponentType) == null) {
