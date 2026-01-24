@@ -11,10 +11,16 @@
       "Description": "The role to transform into after a provided growth range"
     },
     "ChildToAdultTimeRange": {
-      "Value": [
-        "P15D", "P20D"
-      ],
+      "Value": [ "P15D", "P20D" ],
       "Description":  "The time range within which the role should transform into its AdultRole if provided."
+    },
+    "FeedTimeout": {
+      "Value": [ "PT6H", "PT8H" ],
+      "Description": "The timeout between possible feed events"
+    },
+    "IsDomesticable": {
+      "Value": true,
+      "Description": "Indication that the animal can be domesticated."
     },
     "WanderRadius": {
       "Value": 7,
@@ -427,28 +433,6 @@
   },
   "Instructions": [
     {
-      "$Comment": "Handles the growing up and role change of the calf into its parent entity role.",
-      "Enabled": {
-        "Compute": "!isEmpty(AdultRole)"
-      },
-      "Sensor": {
-        "Type": "Age",
-        "Once": true,
-        "AgeRange": {
-          "Compute": "ChildToAdultTimeRange"
-        }
-      },
-      "Actions": [
-        {
-          "Type": "Role",
-          "Role": {
-            "Compute": "AdultRole"
-          },
-          "ChangeAppearance": true
-        }
-      ]
-    },
-    {
       "$Comment": "This is separate so it can run all the time regardless of the rest of the script",
       "Continue": true,
       "Instructions": [
@@ -508,6 +492,42 @@
               "Type": "JoinFlock"
             }
           ]
+        }
+      ]
+    },
+    {
+      "$Comment": "Handles the growing up and role change of the calf into its parent entity role.",
+      "Enabled": {
+        "Compute": "!isEmpty(AdultRole)"
+      },
+      "Sensor": {
+        "Type": "Age",
+        "Once": true,
+        "AgeRange": {
+          "Compute": "ChildToAdultTimeRange"
+        }
+      },
+      "Actions": [
+        {
+          "Type": "Role",
+          "Role": {
+            "Compute": "AdultRole"
+          },
+          "ChangeAppearance": true
+        },
+        {
+          "Type": "PlayAnimation",
+          "Slot": "Status",
+          "Animation": "Alerted"
+        },
+        {
+          "Type": "SpawnParticles",
+          "Offset": [ 0, 1, 0 ],
+          "ParticleSystem": { "Compute": "HarvestParticles" }
+        },
+        {
+          "Type": "PlaySound",
+          "SoundEventId": { "Compute": "HarvestSound" }
         }
       ]
     },
@@ -1271,8 +1291,8 @@
                   ]
                 },
                 {
-                  "Continue": true,
                   "$Comment": "Starting a second timer to try and turn friendly. TODO: compute it as % of alerted timer",
+                  "Continue": true,
                   "Sensor": {
                     "Type": "Target",
                     "Filters": [
@@ -2493,7 +2513,7 @@
     }
   ],
   "InteractionInstruction": {
-    "Enabled": { "Compute": "IsHarvestable || IsMountable" },
+    "Enabled": { "Compute": "IsHarvestable || IsMountable || IsDomesticable" },
     "Instructions": [
       {
         "Enabled": { "Compute": "IsHarvestable" },
@@ -2608,6 +2628,123 @@
                 "AnchorY": { "Compute": "MountAnchorY" },
                 "AnchorZ": { "Compute": "MountAnchorZ" },
                 "MovementConfig": { "Compute": "MountMovementConfig" }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Enabled": { "Compute":  "IsDomesticable" },
+        "Instructions": [
+          {
+            "$Comment": "If the animal currently cannot be fed, due to previous feeding.",
+            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
+            "Sensor": {
+              "$Comment": "Check the negative first so we can exit early and avoid the rest of the logic",
+              "Type": "Or",
+              "Sensors": [
+                {
+                  "Type": "Alarm",
+                  "Name": "Feed_Timeout",
+                  "State":  "Set"
+                },
+                {
+                  "Type": "Not",
+                  "Sensor": {
+                    "Type": "Target",
+                    "Filters": [
+                      {
+                        "Type": "ItemInHand",
+                        "Hand": "Both",
+                        "Items": { "Compute":  "LovedItems" }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "SetInteractable",
+                "Interactable": false
+              }
+            ]
+          },
+          {
+            "$Comment": "Make the NPC interactable when holding the loved item (using the target from the .curious state)",
+            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
+            "Continue": true,
+            "Sensor": {
+              "Type": "And",
+              "Sensors": [
+                {
+                  "Type": "Target",
+                  "Filters": [
+                    {
+                      "Type": "ItemInHand",
+                      "Hand": "Main",
+                      "Items": { "Compute": "LovedItems" }
+                    }
+                  ]
+                },
+                {
+                  "Type": "Or",
+                  "Sensors": [
+                    {
+                      "Type": "Alarm",
+                      "Name": "Feed_Timeout",
+                      "State": "Passed"
+                    },
+                    {
+                      "Type": "Alarm",
+                      "Name": "Feed_Timeout",
+                      "State": "Unset"
+                    }
+                  ]
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "SetInteractable",
+                "Interactable": true,
+                "ShowPrompt": true,
+                "Hint": "server.interactionHints.feedAnimal"
+              }
+            ]
+          },
+          {
+            "$Comment": "Allow the interaction to happen",
+            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
+            "Sensor": {
+              "Type": "And",
+              "Sensors":  [
+                {
+                  "Type": "Target",
+                  "Filters": [
+                    {
+                      "Type": "ItemInHand",
+                      "Hand": "Main",
+                      "Items": { "Compute": "LovedItems" }
+                    }
+                  ]
+                },
+                {
+                  "Type": "HasInteracted"
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "Inventory",
+                "UseTarget": true,
+                "Operation": "RemoveHeldItem",
+                "Count":  1
+              },
+              {
+                "Type": "SetAlarm",
+                "Name": "Feed_Timeout",
+                "DurationRange": { "Compute":  "FeedTimeout" }
               }
             ]
           }

@@ -1,6 +1,6 @@
 {
   "Type": "Variant",
-  "Reference": "Template_Animal_Neutral",
+  "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Chick",
     "FlockArray": [ "Chicken_Chick", "Chicken" ],
