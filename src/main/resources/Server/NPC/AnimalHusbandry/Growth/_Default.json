@@ -1,6 +1,0 @@
-{
-  "$Comment": "Growth configuration; AgeToGrow is in in-game time, ISO-8601 duration format.",
-  "AgeToGrow": "P10D",
-  "ChangeAppearance": true,
-  "GrowthSoundEffectId": "SFX_Crops_Grow_Stage_Complete"
-}

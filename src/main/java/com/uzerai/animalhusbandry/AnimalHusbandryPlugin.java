@@ -9,13 +9,8 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.Config;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.uzerai.animalhusbandry.config.AnimalHusbandry;
 import com.uzerai.animalhusbandry.domestication.*;
-import com.uzerai.animalhusbandry.growth.GrowthAsset;
-import com.uzerai.animalhusbandry.growth.GrowthComponent;
-import com.uzerai.animalhusbandry.growth.GrowthRegisterSystem;
-import com.uzerai.animalhusbandry.growth.GrowthSystem;
 
 /**
  * This class serves as the entrypoint for your plugin. Use the setup method to register into game registries or add
@@ -25,7 +20,6 @@ public class AnimalHusbandryPlugin extends JavaPlugin {
     public static AnimalHusbandryPlugin INSTANCE;
     public static AnimalHusbandryPlugin get() { return INSTANCE; }
     private final Config<AnimalHusbandry> config = this.withConfig("AnimalHusbandry", AnimalHusbandry.CODEC);
-    private ComponentType<EntityStore, GrowthComponent> growthComponentType;
     private ComponentType<EntityStore, DomesticableComponent> domesticableComponentType;
     public AnimalHusbandryPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -36,9 +30,6 @@ public class AnimalHusbandryPlugin extends JavaPlugin {
         return this.config.get();
     }
 
-    public ComponentType<EntityStore, GrowthComponent> getGrowthComponentType() {
-        return this.growthComponentType;
-    }
     public ComponentType<EntityStore, DomesticableComponent> getDomesticableComponentType() { return this.domesticableComponentType; }
 
     @Override
@@ -53,18 +44,6 @@ public class AnimalHusbandryPlugin extends JavaPlugin {
         //      food, they will always follow.
         // - Animals born of two tame animals (if breeding enabled), will also be tame against the same player.
         // TODO: Add feeding to accelerate growth (?)
-
-        // Growth system registration
-        this.growthComponentType = getEntityStoreRegistry().registerComponent(GrowthComponent.class, "Growth", GrowthComponent.CODEC);
-
-        getAssetRegistry().register(
-                HytaleAssetStore.builder(GrowthAsset.class, new DefaultAssetMap<>())
-                        .setPath("NPC/AnimalHusbandry/Growth")
-                        .setCodec(GrowthAsset.CODEC)
-                        .setKeyFunction(GrowthAsset::getId)
-                        .build()
-        );
-
         getAssetRegistry().register(
                 HytaleAssetStore.builder(DomesticableAsset.class, new DefaultAssetMap<>())
                         .setPath("NPC/AnimalHusbandry/Domestication")
@@ -73,18 +52,18 @@ public class AnimalHusbandryPlugin extends JavaPlugin {
                         .build()
         );
 
-        getEntityStoreRegistry().registerSystem(new GrowthRegisterSystem(NPCEntity.getComponentType(), getGrowthComponentType()));
-        getEntityStoreRegistry().registerSystem(new GrowthSystem(NPCEntity.getComponentType(), getGrowthComponentType()));
-
-        // Domestication system registration
+//        getEntityStoreRegistry().registerSystem(new GrowthRegisterSystem(NPCEntity.getComponentType(), getGrowthComponentType()));
+//        getEntityStoreRegistry().registerSystem(new GrowthSystem(NPCEntity.getComponentType(), getGrowthComponentType()));
+//
+//        // Domestication system registration
         this.domesticableComponentType = getEntityStoreRegistry().registerComponent(DomesticableComponent.class,
                 "Domesticable", DomesticableComponent.CODEC);
-
-        getEntityStoreRegistry().registerSystem(new DomesticableRegisterSystem(NPCEntity.getComponentType(), getDomesticableComponentType()));
-
-
-        // Feeding system registration
-        getEntityStoreRegistry().registerSystem(new InteractablePlayersUpdateSystem());
+//
+//        getEntityStoreRegistry().registerSystem(new DomesticableRegisterSystem(NPCEntity.getComponentType(), getDomesticableComponentType()));
+//
+//
+//        // Feeding system registration
+//        getEntityStoreRegistry().registerSystem(new InteractablePlayersUpdateSystem());
     }
 
     @Override
