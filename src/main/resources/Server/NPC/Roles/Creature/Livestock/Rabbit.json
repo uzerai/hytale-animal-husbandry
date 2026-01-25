@@ -2,28 +2,26 @@
   "Type": "Variant",
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
-    "Appearance": "Camel_Calf",
-    "AttitudeGroup": "Prey",
-    "AdultRole": "Camel",
+    "Appearance": "Rabbit",
     "FlockArray": [
-      "Camel",
-      "Camel_Calf"
+      "Rabbit",
+      "Bunny"
     ],
     "LovedItems": [
-      "Plant_Crop_Wheat_Item"
+      "Plant_Crop_Carrot_Item"
     ],
-    "DropList": "Drop_Camel_Calf",
-    "MaxHealth": 94,
-    "ViewRange": 15,
-    "Attack": "Root_NPC_Attack_Melee",
-    "GreetAnimation": "Moo",
+    "DropList": "Drop_Rabbit",
+    "MaxHealth": 49,
+    "MaxSpeed": 8,
+    "AlertedActionRange": 16,
+    "AbsoluteDetectionRange": 4,
     "ChanceToTurnFriendly": 30,
     "ChanceToTurnFriendlyWithAttractiveItem": 60,
-    "WeightGreet": 10,
-    "WeightFollowItem": 30,
+    "WeightGreet": 1,
+    "WeightFollowItem": 20,
     "WeightFollow": 40,
-    "WeightIgnore": 20,
-    "ProduceItem": "Ingredient_Poop",
+    "WeightIgnore": 10,
+    "Timid": true,
     "IsMemory": true,
     "NameTranslationKey": {
       "Compute": "NameTranslationKey"
@@ -31,7 +29,7 @@
   },
   "Parameters": {
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Camel_Calf.name",
+      "Value": "server.npcRoles.Rabbit.name",
       "Description": "Translation key for NPC name display"
     }
   }

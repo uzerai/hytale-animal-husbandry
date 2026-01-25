@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Boar_Piglet",
+    "AdultRole": "Boar",
     "FlockArray": [
       "Boar",
       "Boar_Piglet"

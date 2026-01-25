@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Piglet_Wild",
+    "AdultRole": "Pig_Wild",
     "FlockArray": [ "Pig_Wild_Piglet", "Pig_Wild" ],
     "LovedItems": [ "Plant_Crop_Pumpkin_Item" ],
     "DropList": "Drop_Piglet",

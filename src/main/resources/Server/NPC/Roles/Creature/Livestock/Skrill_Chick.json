@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Skrill_Chick",
+    "AdultRole": "Skrill",
     "FlockArray": [
       "Skrill_Chick",
       "Skrill"

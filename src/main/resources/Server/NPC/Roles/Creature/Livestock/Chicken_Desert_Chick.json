@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Chick_Desert",
+    "AdultRole": "Chicken_Desert",
     "FlockArray": [ "Chicken_Desert_Chick", "Chicken_Desert" ],
     "LovedItems": [ "Plant_Crop_Corn_Item" ],
     "DropList": "Drop_Chick_Desert",

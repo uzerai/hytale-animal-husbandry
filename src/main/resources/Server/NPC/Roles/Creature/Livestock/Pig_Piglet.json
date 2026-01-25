@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Piglet",
+    "AdultRole": "Pig",
     "FlockArray": [ "Pig_Piglet", "Pig" ],
     "LovedItems": [ "Plant_Crop_Mushroom_Cap_Brown" ],
     "DropList": "Drop_Piglet",

@@ -2,27 +2,26 @@
   "Type": "Variant",
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
-    "Appearance": "Turkey_Chick",
-    "AdultRole": "Turkey",
+    "Appearance": "Mouflon",
+    "AttitudeGroup": "Prey",
     "FlockArray": [
-      "Turkey_Chick",
-      "Turkey"
+      "Mouflon",
+      "Mouflon_Lamb"
     ],
     "LovedItems": [
-      "Plant_Crop_Corn_Item"
+      "Plant_Fruit_Apple"
     ],
-    "DropList": "Drop_Turkey",
-    "MaxHealth": 15,
-    "MaxSpeed": 4,
-    "AlertedActionRange": 2,
-    "AbsoluteDetectionRange": 1,
+    "DropList": "Drop_Mouflon",
+    "MaxHealth": 81,
+    "ViewRange": 15,
+    "GreetAnimation": "Bleat",
     "ChanceToTurnFriendly": 30,
-    "ChanceToTurnFriendlyWithAttractiveItem": 70,
+    "ChanceToTurnFriendlyWithAttractiveItem": 50,
     "WeightGreet": 30,
-    "WeightFollowItem": 30,
-    "WeightFollow": 20,
+    "WeightFollowItem": 20,
+    "WeightFollow": 10,
     "WeightIgnore": 20,
-    "Timid": true,
+    "ProduceItem": "Ingredient_Poop",
     "IsMemory": true,
     "NameTranslationKey": {
       "Compute": "NameTranslationKey"
@@ -30,7 +29,7 @@
   },
   "Parameters": {
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Turkey_Chick.name",
+      "Value": "server.npcRoles.Mouflon.name",
       "Description": "Translation key for NPC name display"
     }
   }

@@ -2,35 +2,34 @@
   "Type": "Variant",
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
-    "Appearance": "Warthog_Piglet",
-    "AdultRole": "Warthog",
+    "Appearance": "Pig",
     "FlockArray": [
-      "Warthog_Piglet",
-      "Warthog"
+      "Pig",
+      "Pig_Piglet"
     ],
     "LovedItems": [
-      "Plant_Fruit_Berries_Red"
+      "Plant_Crop_Mushroom_Cap_Brown"
     ],
-    "DropList": "Drop_Warthog_Piglet",
-    "MaxHealth": 81,
+    "DropList": "Drop_Pig",
+    "MaxHealth": 38,
     "ViewRange": 15,
-    "GreetAnimation": "Moo",
-    "ChanceToTurnFriendly": 25,
-    "ChanceToTurnFriendlyWithAttractiveItem": 50,
+    "ChanceToTurnFriendly": 50,
+    "ChanceToTurnFriendlyWithAttractiveItem": 80,
     "WeightGreet": 20,
-    "WeightFollowItem": 20,
+    "WeightFollowItem": 40,
     "WeightFollow": 20,
-    "WeightIgnore": 20,
+    "WeightIgnore": 10,
     "ProduceItem": "Ingredient_Poop",
     "IsHarvestable": false,
     "IsMemory": true,
+    "MemoriesNameOverride": "Pig",
     "NameTranslationKey": {
       "Compute": "NameTranslationKey"
     }
   },
   "Parameters": {
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Warthog_Piglet.name",
+      "Value": "server.npcRoles.Pig.name",
       "Description": "Translation key for NPC name display"
     }
   }

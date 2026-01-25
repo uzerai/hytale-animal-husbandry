@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Goat_Kid",
+    "AdultRole": "Goat",
     "FlockArray": [
       "Goat_Kid",
       "Goat"

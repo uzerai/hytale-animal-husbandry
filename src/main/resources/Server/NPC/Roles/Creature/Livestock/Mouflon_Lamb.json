@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Mouflon_Lamb",
+    "AdultRole": "Mouflon",
     "FlockArray": [
       "Mouflon_Lamb",
       "Mouflon"

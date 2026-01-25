@@ -2,24 +2,23 @@
   "Type": "Variant",
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
-    "Appearance": "Turkey_Chick",
-    "AdultRole": "Turkey",
+    "Appearance": "Turkey",
     "FlockArray": [
-      "Turkey_Chick",
-      "Turkey"
+      "Turkey",
+      "Turkey_Chick"
     ],
     "LovedItems": [
       "Plant_Crop_Corn_Item"
     ],
     "DropList": "Drop_Turkey",
-    "MaxHealth": 15,
-    "MaxSpeed": 4,
-    "AlertedActionRange": 2,
-    "AbsoluteDetectionRange": 1,
-    "ChanceToTurnFriendly": 30,
-    "ChanceToTurnFriendlyWithAttractiveItem": 70,
-    "WeightGreet": 30,
-    "WeightFollowItem": 30,
+    "MaxHealth": 38,
+    "MaxSpeed": 5,
+    "AlertedActionRange": 4,
+    "AbsoluteDetectionRange": 1.5,
+    "ChanceToTurnFriendly": 15,
+    "ChanceToTurnFriendlyWithAttractiveItem": 40,
+    "WeightGreet": 40,
+    "WeightFollowItem": 15,
     "WeightFollow": 20,
     "WeightIgnore": 20,
     "Timid": true,
@@ -30,7 +29,7 @@
   },
   "Parameters": {
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Turkey_Chick.name",
+      "Value": "server.npcRoles.Turkey.name",
       "Description": "Translation key for NPC name display"
     }
   }

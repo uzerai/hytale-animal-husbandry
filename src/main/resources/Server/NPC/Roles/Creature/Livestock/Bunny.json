@@ -2,35 +2,34 @@
   "Type": "Variant",
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
-    "Appearance": "Horse_Foal",
-    "AdultRole": "Horse",
+    "Appearance": "Bunny",
     "FlockArray": [
-      "Horse_Foal",
-      "Horse"
+      "Bunny",
+      "Rabbit"
     ],
     "LovedItems": [
       "Plant_Crop_Carrot_Item"
     ],
-    "DropList": "Drop_Horse_Foal",
-    "MaxHealth": 49,
-    "MaxSpeed": 8,
-    "ViewRange": 12,
-    "GreetAnimation": "Moo",
-    "ChanceToTurnFriendly": 30,
+    "DropList": "Drop_Bunny",
+    "MaxHealth": 25,
+    "MaxSpeed": 5,
+    "AlertedActionRange": 10,
+    "ChanceToTurnFriendly": 50,
     "ChanceToTurnFriendlyWithAttractiveItem": 80,
-    "WeightGreet": 40,
-    "WeightFollowItem": 30,
-    "WeightFollow": 10,
+    "WeightGreet": 1,
+    "WeightFollowItem": 40,
+    "WeightFollow": 40,
     "WeightIgnore": 10,
-    "ProduceItem": "Ingredient_Poop",
+    "Timid": true,
     "IsMemory": true,
+    "MemoriesNameOverride": "Bunny",
     "NameTranslationKey": {
       "Compute": "NameTranslationKey"
     }
   },
   "Parameters": {
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Horse_Foal.name",
+      "Value": "server.npcRoles.Bunny.name",
       "Description": "Translation key for NPC name display"
     }
   }

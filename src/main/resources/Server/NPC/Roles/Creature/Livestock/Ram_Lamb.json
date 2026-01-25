@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Ram_Lamb",
+    "AdultRole": "Ram",
     "FlockArray": [
       "Ram_Lamb",
       "Ram"
