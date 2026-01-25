@@ -16,7 +16,9 @@ import javax.annotation.Nonnull;
 
 public class EntityFilterIsCustodian extends EntityFilterBase {
     public static final String TYPE = "IsCustodian";
-    public static final int COST = IEntityFilter.LOW_COST; // 100
+    // I honestly don't know what cost ranges should be considered, I'm assuming this is a low cost filter as it only
+    // checks for the existence of a component and a comparison of a Set<> within that component.
+    public static final int COST = IEntityFilter.LOW_COST;
 
     private static final ComponentType<EntityStore, DomesticatedComponent> DOMESTICATED_COMPONENT_TYPE =
             DomesticatedComponent.getComponentType();
@@ -24,7 +26,8 @@ public class EntityFilterIsCustodian extends EntityFilterBase {
     @Override
     public boolean matchesEntity(@Nonnull Ref<EntityStore> ref, @Nonnull Ref<EntityStore> targetRef, @Nonnull Role role, @Nonnull Store<EntityStore> store) {
         DomesticatedComponent domesticatedComponent = store.getComponent(ref, DOMESTICATED_COMPONENT_TYPE);
-        UUIDComponent uuidComponent = store.getComponent(ref, UUIDComponent.getComponentType());
+        UUIDComponent uuidComponent = store.getComponent(targetRef, UUIDComponent.getComponentType());
+
 
         if (domesticatedComponent == null || uuidComponent == null) {
             return false;

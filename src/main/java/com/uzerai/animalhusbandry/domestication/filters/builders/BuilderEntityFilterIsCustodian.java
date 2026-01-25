@@ -5,10 +5,8 @@ import com.hypixel.hytale.server.npc.asset.builder.BuilderDescriptorState;
 import com.hypixel.hytale.server.npc.asset.builder.BuilderSupport;
 import com.hypixel.hytale.server.npc.asset.builder.ComponentContext;
 import com.hypixel.hytale.server.npc.asset.builder.InstructionType;
-import com.hypixel.hytale.server.npc.asset.builder.holder.BooleanHolder;
 import com.hypixel.hytale.server.npc.corecomponents.IEntityFilter;
 import com.hypixel.hytale.server.npc.corecomponents.builders.BuilderEntityFilterBase;
-import com.hypixel.hytale.server.npc.util.expression.ExecutionContext;
 import com.uzerai.animalhusbandry.domestication.filters.EntityFilterIsCustodian;
 import javax.annotation.Nonnull;
 

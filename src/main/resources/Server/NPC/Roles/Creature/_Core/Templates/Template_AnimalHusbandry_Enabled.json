@@ -441,6 +441,31 @@
   },
   "Instructions": [
     {
+      "$Comment": "Custodian logic so domesticated animals behave somewhat the same",
+      "Enabled": { "Compute":  "IsDomesticable" },
+      "Continue": true,
+      "Instructions": [
+        {
+          "$Comment": "If a close player is a custodian, just remain friendly towards them",
+          "Sensor": {
+            "Type": "Player",
+            "Range": 10,
+            "Filters": [
+              {
+                "Type": "IsCustodian"
+              }
+            ]
+          },
+          "Actions": [
+            {
+              "Type": "OverrideAttitude",
+              "Attitude": "Friendly"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "$Comment": "This is separate so it can run all the time regardless of the rest of the script",
       "Continue": true,
       "Instructions": [
@@ -1184,9 +1209,9 @@
               }
             },
             {
+              "$Comment": "If target is reasonably close, the NPC will react instead of just staring",
               "Continue": true,
               "Sensor": {
-                "$Comment": "If target is reasonably close, the NPC will react instead of just staring",
                 "Type": "Target",
                 "Range": { "Compute": "AlertedActionRange" },
                 "Filters": [
@@ -2595,7 +2620,7 @@
             ]
           },
           {
-            "$Comment": "Make the NPC interactable when holding the loved item (assuming the target from the .curiousItem state)",
+            "$Comment": "Make the NPC interactable when holding the loved item (assuming the target from the Curious.Item state)",
             "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
             "Continue": true,
             "Sensor": {
@@ -2638,6 +2663,44 @@
             ]
           },
           {
+            "$Comment": "Allow the interaction to happen when already a custodian",
+            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
+            "Sensor": {
+              "Type": "And",
+              "Sensors":  [
+                {
+                  "Type": "Target",
+                  "Filters": [
+                    {
+                      "Type": "IsCustodian"
+                    },
+                    {
+                      "Type": "ItemInHand",
+                      "Hand": "Main",
+                      "Items": { "Compute": "LovedItems" }
+                    }
+                  ]
+                },
+                {
+                  "Type": "HasInteracted"
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "Inventory",
+                "UseTarget": true,
+                "Operation": "RemoveHeldItem",
+                "Count":  1
+              },
+              {
+                "Type": "SetAlarm",
+                "Name": "Feed_Timeout",
+                "DurationRange": { "Compute":  "FeedTimeout" }
+              }
+            ]
+          },
+          {
             "$Comment": "Allow the interaction to happen",
             "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
             "Sensor": {
@@ -2646,6 +2709,12 @@
                 {
                   "Type": "Target",
                   "Filters": [
+                    {
+                      "Type": "Not",
+                      "Filter": {
+                        "Type": "IsCustodian"
+                      }
+                    },
                     {
                       "Type": "ItemInHand",
                       "Hand": "Main",
@@ -2671,9 +2740,34 @@
                 "DurationRange": { "Compute":  "FeedTimeout" }
               },
               {
-                "Type": "SetDomesticated",
-                "AddCustodianFromTarget": true,
-                "Once": true
+                "Type": "Random",
+                "Actions": [
+                  {
+                    "Action": {
+                      "Type": "Sequence",
+                      "Actions": [
+                        {
+                          "Type": "SetDomesticated",
+                          "AddCustodianFromTarget":  true
+                        },
+                        {
+                          "Type": "SpawnParticles",
+                          "Offset": [ 0, 1, 0 ],
+                          "ParticleSystem": "Hearts_Subtle"
+                        }
+                      ]
+                    },
+                    "Weight": 2
+                  },
+                  {
+                    "Action": {
+                      "Type": "SpawnParticles",
+                      "Offset": [ 0, 1, 0 ],
+                      "ParticleSystem": "Sheep_Wool_Shear"
+                    },
+                    "Weight": 3
+                  }
+                ]
               }
             ]
           }

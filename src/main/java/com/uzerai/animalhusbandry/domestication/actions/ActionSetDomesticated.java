@@ -41,7 +41,6 @@ public class ActionSetDomesticated extends ActionBase {
             return false;
         }
 
-        // If we need a target to add as custodian, check that sensor provides one
         return !addCustodianFromTarget || (sensorInfo != null && sensorInfo.hasPosition());
     }
 
@@ -55,7 +54,6 @@ public class ActionSetDomesticated extends ActionBase {
     ) {
         super.execute(ref, role, sensorInfo, dt, store);
 
-        // If we should add custodian from sensor target
         if (addCustodianFromTarget && sensorInfo.hasPosition()) {
             DomesticatedComponent component = store.ensureAndGetComponent(ref, DOMESTICATED_COMPONENT_TYPE);
 
