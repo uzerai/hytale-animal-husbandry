@@ -635,6 +635,7 @@
       "$Comment": "Specific state instructions",
       "Instructions": [
         {
+          "$Comment": "Idle instructions",
           "Sensor": {
             "Type": "State",
             "State": "Idle"
@@ -1054,6 +1055,7 @@
           ]
         },
         {
+          "$Comment": "Sleep instructions",
           "Sensor": {
             "Type": "State",
             "State": "Sleep"
@@ -1676,6 +1678,7 @@
           ]
         },
         {
+          "$Comment": "Curious state instructions",
           "Sensor": {
             "Type": "State",
             "State": "Curious"
@@ -2104,6 +2107,7 @@
           ]
         },
         {
+          "$Comment": "Return home instructions",
           "Sensor": {
             "Type": "State",
             "State": "ReturnHome"
@@ -2181,6 +2185,7 @@
           ]
         },
         {
+          "$Comment": "Flee state",
           "Sensor": {
             "Type": "State",
             "State": "Flee"
@@ -2364,6 +2369,7 @@
           ]
         },
         {
+          "$Comment": "Panic state",
           "Sensor": {
             "Type": "State",
             "State": "Panic"
@@ -2421,6 +2427,7 @@
           ]
         },
         {
+          "$Comment": "Harvest state",
           "Sensor": {
             "Type": "State",
             "State": "$Harvest"
