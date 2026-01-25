@@ -18,7 +18,7 @@ ext {
             hytaleHome = "${System.getProperty("user.home")}/Library/Application Support/Hytale"
         }
         else if (os.isLinux()) {
-//            hytaleHome = "${System.getProperty("user.home")}/.var/app/com.hypixel.HytaleLauncher/data/Hytale"
+            hytaleHome = "${System.getProperty("user.home")}/.var/app/com.hypixel.HytaleLauncher/data/Hytale"
             if (!file(hytaleHome).exists()) {
                 hytaleHome = "${System.getProperty("user.home")}/.local/share/Hytale"
             }

@@ -15,12 +15,20 @@
       "Description":  "The time range within which the role should transform into its AdultRole if provided."
     },
     "FeedTimeout": {
-      "Value": [ "PT6H", "PT8H" ],
+      "Value": [ "PT1M", "PT2M" ],
       "Description": "The timeout between possible feed events"
     },
     "IsDomesticable": {
       "Value": true,
       "Description": "Indication that the animal can be domesticated."
+    },
+    "DomesticationLevelSlot": {
+      "Value": 0.0,
+      "Description": "Starting value for domestication level; will be considered Domesticated when this level is equal or greater than DomesticationLevelThreshold"
+    },
+    "DomesticationLevelThreshold": {
+      "Value": 100.0,
+      "Description": "Threshold at which the npc is considered domesticated."
     },
     "WanderRadius": {
       "Value": 7,
@@ -532,8 +540,8 @@
       ]
     },
     {
-      "Continue": true,
       "$Comment": "This is separate so it can run all the time regardless of the rest of the script, when in water go straight to panic to get out",
+      "Continue": true,
       "Instructions": [
         {
           "Sensor": {
@@ -599,6 +607,7 @@
       ]
     },
     {
+      "$Comment": "Specific state instructions",
       "Instructions": [
         {
           "Sensor": {
@@ -1156,7 +1165,15 @@
               "Continue": true,
               "Sensor": {
                 "Type": "Target",
-                "Range": { "Compute": "AlertedActionRange * randomInRange(0.3, 0.7)" }
+                "Range": { "Compute": "AlertedActionRange * randomInRange(0.3, 0.7)" },
+                "Filters": [
+                  {
+                    "Type": "Not",
+                    "Filter": {
+                      "Type": "IsCustodian"
+                    }
+                  }
+                ]
               },
               "BodyMotion": {
                 "Type": "Flee",
@@ -1225,6 +1242,12 @@
                         "Type": "Target",
                         "Filters": [
                           {
+                            "Type": "Not",
+                            "Filter": {
+                              "Type": "IsCustodian"
+                            }
+                          },
+                          {
                             "Type": "Or",
                             "Filters": [
                               {
@@ -1245,6 +1268,12 @@
                       {
                         "Type": "Target",
                         "Filters": [
+                          {
+                            "Type": "Not",
+                            "Filter":  {
+                              "Type": "IsCustodian"
+                            }
+                          },
                           {
                             "Type": "Not",
                             "Filter": {
@@ -1272,6 +1301,12 @@
                         "Type": "Target",
                         "Range": { "Compute": "AbsoluteDetectionRange" },
                         "Filters": [
+                          {
+                            "Type": "Not",
+                            "Filter": {
+                              "Type": "IsCustodian"
+                            }
+                          },
                           {
                             "Type": "Not",
                             "Filter": {
@@ -1675,8 +1710,9 @@
             {
               "$Comment": "Check if there are any potential threats nearby and flee. TODO: add more tirggers to flee",
               "Sensor": {
-                "Reference": "Component_Sensor_Standard_Detection",
+                "Reference": "Component_Sensor_Standard_Detection_Ignore_Custodians",
                 "Modify": {
+                  "IsDomesticable": { "Compute": "IsDomesticable" },
                   "ViewRange": { "Compute": "ViewRange" },
                   "ViewSector": { "Compute": "ViewSector" },
                   "HearingRange": { "Compute": "HearingRange" },
@@ -1699,13 +1735,19 @@
               }
             },
             {
-              "$Comment": "TODO: mb potentially move secnsor component for curious, or for alerted - with parameters to be mor forgiving",
+              "$Comment": "TODO: mb potentially move sensor component for curious, or for alerted - with parameters to be mor forgiving",
               "Sensor": {
                 "Type": "Or",
                 "Sensors": [
                   {
                     "Type": "Target",
                     "Filters": [
+                      {
+                        "Type":  "Not",
+                        "Filter": {
+                          "Type": "IsCustodian"
+                        }
+                      },
                       {
                         "Type": "Or",
                         "Filters": [
@@ -2516,6 +2558,128 @@
     "Enabled": { "Compute": "IsHarvestable || IsMountable || IsDomesticable" },
     "Instructions": [
       {
+        "Enabled": { "Compute":  "IsDomesticable" },
+        "Instructions": [
+          {
+            "$Comment": "If the animal currently cannot be fed, due to previous feeding.",
+            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
+            "Sensor": {
+              "$Comment": "Check the negative first so we can exit early and avoid the rest of the logic",
+              "Type": "Or",
+              "Sensors": [
+                {
+                  "Type": "Alarm",
+                  "Name": "Feed_Timeout",
+                  "State":  "Set"
+                },
+                {
+                  "Type": "Not",
+                  "Sensor": {
+                    "Type": "Target",
+                    "Filters": [
+                      {
+                        "Type": "ItemInHand",
+                        "Hand": "Both",
+                        "Items": { "Compute":  "LovedItems" }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "SetInteractable",
+                "Interactable": false
+              }
+            ]
+          },
+          {
+            "$Comment": "Make the NPC interactable when holding the loved item (assuming the target from the .curiousItem state)",
+            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
+            "Continue": true,
+            "Sensor": {
+              "Type": "And",
+              "Sensors": [
+                {
+                  "Type": "Target",
+                  "Filters": [
+                    {
+                      "Type": "ItemInHand",
+                      "Hand": "Main",
+                      "Items": { "Compute": "LovedItems" }
+                    }
+                  ]
+                },
+                {
+                  "Type": "Or",
+                  "Sensors": [
+                    {
+                      "Type": "Alarm",
+                      "Name": "Feed_Timeout",
+                      "State": "Passed"
+                    },
+                    {
+                      "Type": "Alarm",
+                      "Name": "Feed_Timeout",
+                      "State": "Unset"
+                    }
+                  ]
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "SetInteractable",
+                "Interactable": true,
+                "ShowPrompt": true,
+                "Hint": "animal_husbandry.interactionHints.feedAnimal"
+              }
+            ]
+          },
+          {
+            "$Comment": "Allow the interaction to happen",
+            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
+            "Sensor": {
+              "Type": "And",
+              "Sensors":  [
+                {
+                  "Type": "Target",
+                  "Filters": [
+                    {
+                      "Type": "ItemInHand",
+                      "Hand": "Main",
+                      "Items": { "Compute": "LovedItems" }
+                    }
+                  ]
+                },
+                {
+                  "Type": "HasInteracted"
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "Inventory",
+                "UseTarget": true,
+                "Operation": "RemoveHeldItem",
+                "Count":  1
+              },
+              {
+                "Type": "SetAlarm",
+                "Name": "Feed_Timeout",
+                "DurationRange": { "Compute":  "FeedTimeout" }
+              },
+              {
+                "Type": "SetDomesticated",
+                "AddCustodianFromTarget": true,
+                "Once": true
+              }
+            ]
+          }
+        ]
+      },
+      {
         "Enabled": { "Compute": "IsHarvestable" },
         "Instructions": [
           {
@@ -2628,123 +2792,6 @@
                 "AnchorY": { "Compute": "MountAnchorY" },
                 "AnchorZ": { "Compute": "MountAnchorZ" },
                 "MovementConfig": { "Compute": "MountMovementConfig" }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "Enabled": { "Compute":  "IsDomesticable" },
-        "Instructions": [
-          {
-            "$Comment": "If the animal currently cannot be fed, due to previous feeding.",
-            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
-            "Sensor": {
-              "$Comment": "Check the negative first so we can exit early and avoid the rest of the logic",
-              "Type": "Or",
-              "Sensors": [
-                {
-                  "Type": "Alarm",
-                  "Name": "Feed_Timeout",
-                  "State":  "Set"
-                },
-                {
-                  "Type": "Not",
-                  "Sensor": {
-                    "Type": "Target",
-                    "Filters": [
-                      {
-                        "Type": "ItemInHand",
-                        "Hand": "Both",
-                        "Items": { "Compute":  "LovedItems" }
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            "Actions": [
-              {
-                "Type": "SetInteractable",
-                "Interactable": false
-              }
-            ]
-          },
-          {
-            "$Comment": "Make the NPC interactable when holding the loved item (using the target from the .curious state)",
-            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
-            "Continue": true,
-            "Sensor": {
-              "Type": "And",
-              "Sensors": [
-                {
-                  "Type": "Target",
-                  "Filters": [
-                    {
-                      "Type": "ItemInHand",
-                      "Hand": "Main",
-                      "Items": { "Compute": "LovedItems" }
-                    }
-                  ]
-                },
-                {
-                  "Type": "Or",
-                  "Sensors": [
-                    {
-                      "Type": "Alarm",
-                      "Name": "Feed_Timeout",
-                      "State": "Passed"
-                    },
-                    {
-                      "Type": "Alarm",
-                      "Name": "Feed_Timeout",
-                      "State": "Unset"
-                    }
-                  ]
-                }
-              ]
-            },
-            "Actions": [
-              {
-                "Type": "SetInteractable",
-                "Interactable": true,
-                "ShowPrompt": true,
-                "Hint": "server.interactionHints.feedAnimal"
-              }
-            ]
-          },
-          {
-            "$Comment": "Allow the interaction to happen",
-            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
-            "Sensor": {
-              "Type": "And",
-              "Sensors":  [
-                {
-                  "Type": "Target",
-                  "Filters": [
-                    {
-                      "Type": "ItemInHand",
-                      "Hand": "Main",
-                      "Items": { "Compute": "LovedItems" }
-                    }
-                  ]
-                },
-                {
-                  "Type": "HasInteracted"
-                }
-              ]
-            },
-            "Actions": [
-              {
-                "Type": "Inventory",
-                "UseTarget": true,
-                "Operation": "RemoveHeldItem",
-                "Count":  1
-              },
-              {
-                "Type": "SetAlarm",
-                "Name": "Feed_Timeout",
-                "DurationRange": { "Compute":  "FeedTimeout" }
               }
             ]
           }
