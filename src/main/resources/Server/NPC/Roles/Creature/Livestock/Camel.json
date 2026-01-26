@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Camel",
+    "ChildRole": "Camel_Calf",
     "AttitudeGroup": "PreyBig",
     "FlockArray": [
       "Camel",

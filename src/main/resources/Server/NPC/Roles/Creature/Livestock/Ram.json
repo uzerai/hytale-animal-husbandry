@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Ram",
+    "ChildRole": "Ram_Lamb",
     "AttitudeGroup": "Prey",
     "FlockArray": [
       "Ram",

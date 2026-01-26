@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Mouflon",
+    "ChildRole": "Mouflon_Lamb",
     "AttitudeGroup": "Prey",
     "FlockArray": [
       "Mouflon",

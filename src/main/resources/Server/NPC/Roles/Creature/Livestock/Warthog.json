@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Warthog",
+    "ChildRole": "Warthog_Piglet",
     "AttitudeGroup": "Prey",
     "FlockArray": [
       "Warthog",

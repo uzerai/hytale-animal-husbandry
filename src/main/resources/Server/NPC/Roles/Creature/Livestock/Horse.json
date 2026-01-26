@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Horse",
+    "ChildRole": "Horse_Foal",
     "AttitudeGroup": "PreyBig",
     "FlockArray": [
       "Horse",

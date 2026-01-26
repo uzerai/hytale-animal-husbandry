@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Bison",
+    "ChildRole": "Bison_Calf",
     "AttitudeGroup": "PreyBig",
     "FlockArray": [
       "Bison",

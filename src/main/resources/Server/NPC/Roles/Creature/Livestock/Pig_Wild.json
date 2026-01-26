@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Pig_Wild",
+    "ChildRole": "Pig_Wild_Piglet",
     "FlockArray": [
       "Pig_Wild",
       "Pig_Wild_Piglet"
