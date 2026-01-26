@@ -10,6 +10,10 @@
       "Value": "",
       "Description": "The role to transform into after a provided growth range"
     },
+    "ChildRole": {
+      "Value": "",
+      "Description": "The role which should be spawned when the NPC has successfully mated."
+    },
     "ChildToAdultTimeRange": {
       "Value": [ "P15D", "P20D" ],
       "Description":  "The time range within which the role should transform into its AdultRole if provided."
@@ -22,13 +26,13 @@
       "Value": true,
       "Description": "Indication that the animal can be domesticated."
     },
-    "DomesticationLevelSlot": {
-      "Value": 0.0,
-      "Description": "Starting value for domestication level; will be considered Domesticated when this level is equal or greater than DomesticationLevelThreshold"
+    "BreedingTimeout": {
+      "Value": [ "P2D", "P3D" ],
+      "Description": "Timeout before child can be birthed"
     },
-    "DomesticationLevelThreshold": {
-      "Value": 100.0,
-      "Description": "Threshold at which the npc is considered domesticated."
+    "BreedingTargetSlot": {
+      "Value": "",
+      "Description": "Slot for current breeding target when finding a mate."
     },
     "WanderRadius": {
       "Value": 7,
@@ -530,6 +534,7 @@
     },
     {
       "$Comment": "Handles the growing up and role change of the calf into its parent entity role.",
+      "Continue": true,
       "Enabled": {
         "Compute": "!isEmpty(AdultRole)"
       },
@@ -1049,6 +1054,110 @@
                       }
                     ]
                   }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$Comment": "Breeding instructions",
+          "Enabled": { "Compute":  "isEmpty(AdultRole)" },
+          "Sensor": {
+            "Type": "State",
+            "State": "Breeding"
+          },
+          "ActionsBlocking": true,
+          "Instructions": [
+            {
+              "Continue": true,
+              "Actions": [
+                {
+                  "Type": "Beacon",
+                  "Message": "Breedable",
+                  "TargetGroups": [
+                    "Self"
+                  ]
+                }
+              ]
+            },
+            {
+              "Instructions": [
+                {
+                  "$Comment": "When receiving a SpawnChild message from another NPC of the same type",
+                  "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+                  "Sensor": {
+                    "Type": "Beacon",
+                    "Message": "SpawnChild",
+                    "Range": 2,
+                    "ConsumeMessage": true,
+                    "Once": true
+                  },
+                  "Actions": [
+                    {
+                      "Type": "ReleaseTarget",
+                      "TargetSlot": "BreedingTargetSlot"
+                    },
+                    {
+                      "Type": "State",
+                      "State": "$BreedSpawning"
+                    }
+                  ]
+                },
+                {
+                  "$Comment": "When receiving a Breedable message from another NPC of the same type, move closer to potential mate",
+                  "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+                  "Continue": true,
+                  "Sensor": {
+                    "Type": "Beacon",
+                    "Message": "Breedable",
+                    "TargetSlot": "BreedingTargetSlot",
+                    "ConsumeMessage": true
+                  },
+                  "BodyMotion": {
+                    "Type": "MaintainDistance",
+                    "DesiredDistanceRange": [
+                      1,
+                      1.2
+                    ]
+                  }
+                },
+                {
+                  "$Comment": "When close enough, send spawn notification to other entity, whoever is first is arbitrary",
+                  "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+                  "Sensor": {
+                    "Type": "Target",
+                    "TargetSlot": "BreedingTargetSlot",
+                    "Once": true,
+                    "Range": 2
+                  },
+                  "Actions": [
+                    {
+                      "Type": "SpawnParticles",
+                      "Offset": [ 0, 1, 0 ],
+                      "ParticleSystem": "Hearts"
+                    },
+                    {
+                      "Type": "Notify",
+                      "Message": "SpawnChild",
+                      "UseTargetSlot": "BreedingTargetSlot",
+                      "ExpirationTime": 0.1
+                    },
+                    {
+                      "Type": "SetAlarm",
+                      "Name": "BreedTimeout",
+                      "DurationRange": {
+                        "Compute": "BreedingTimeout"
+                      }
+                    },
+                    {
+                      "Type": "ReleaseTarget",
+                      "TargetSlot": "BreedingTargetSlot"
+                    },
+                    {
+                      "Type": "State",
+                      "State": "Idle"
+                    }
+                  ]
                 }
               ]
             }
@@ -2582,6 +2691,64 @@
               ]
             }
           ]
+        },
+        {
+          "$Comment": "Breeding spawning logic.",
+          "Sensor": {
+            "Type": "State",
+            "State": "$BreedSpawning"
+          },
+          "Instructions": [
+            {
+              "$Comment": "Set alarm",
+              "Continue": true,
+              "Sensor": {
+                "Type": "Any",
+                "Once": true
+              },
+              "Actions": [
+                {
+                  "Type": "SetAlarm",
+                  "Name": "BreedTimeout",
+                  "DurationRange": { "Compute": "BreedingTimeout" }
+                }
+              ]
+            },
+            {
+              "$Comment": "Spawn the bastard thing",
+              "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+              "Continue": true,
+              "Sensor": {
+                "Type": "Any",
+                "Once": true
+              },
+              "Actions": [
+                {
+                  "Type": "Spawn",
+                  "Kind": { "Compute": "ChildRole" },
+                  "CountRange":  [1,2]
+                }
+              ]
+            },
+            {
+              "$Comment": "Set state back to idle",
+              "ActionsBlocking": true,
+              "Sensor": {
+                "Type": "Any",
+                "Once": true
+              },
+              "Actions": [
+                {
+                  "Type": "Timeout",
+                  "Delay": [2, 3]
+                },
+                {
+                  "Type": "State",
+                  "State": "Idle"
+                }
+              ]
+            }
+          ]
         }
       ]
     }
@@ -2670,7 +2837,7 @@
             ]
           },
           {
-            "$Comment": "Allow the interaction to happen when already a custodian",
+            "$Comment": "Allow the interaction to happen when already a custodian, and breeding is available.",
             "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
             "Sensor": {
               "Type": "And",
@@ -2685,6 +2852,21 @@
                       "Type": "ItemInHand",
                       "Hand": "Main",
                       "Items": { "Compute": "LovedItems" }
+                    }
+                  ]
+                },
+                {
+                  "Type": "Or",
+                  "Sensors": [
+                    {
+                      "Type": "Alarm",
+                      "Name": "BreedTimeout",
+                      "State": "Unset"
+                    },
+                    {
+                      "Type": "Alarm",
+                      "Name": "BreedTimeout",
+                      "State": "Passed"
                     }
                   ]
                 },
@@ -2704,6 +2886,10 @@
                 "Type": "SetAlarm",
                 "Name": "Feed_Timeout",
                 "DurationRange": { "Compute":  "FeedTimeout" }
+              },
+              {
+                "Type": "State",
+                "State": "Breeding"
               }
             ]
           },

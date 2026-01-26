@@ -3,6 +3,7 @@
   "Reference": "Template_AnimalHusbandry_Enabled",
   "Modify": {
     "Appearance": "Cow",
+    "ChildRole": "Cow_Calf",
     "FlockArray": [
       "Cow",
       "Cow_Calf"

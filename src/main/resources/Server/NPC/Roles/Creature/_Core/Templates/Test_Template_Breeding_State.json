@@ -342,20 +342,29 @@
       "States": [
         {
           "To": [ "Idle" ],
-          "From": [ "Breeding" ]
+          "From": []
         }
       ],
       "Actions": [
+        {
+          "Type": "DisplayName",
+          "DisplayName": "Idle"
+        }
       ]
     },
     {
       "States": [
         {
           "To": [ "Breeding" ],
-          "From": [ "Idle" ]
+          "From": []
         }
       ],
-      "Actions": []
+      "Actions": [
+        {
+          "Type": "DisplayName",
+          "DisplayName": "Breeding"
+        }
+      ]
     }
   ],
   "MaxHealth": { "Compute": "MaxHealth" },
@@ -381,49 +390,69 @@
       "$Comment": "State based interactions in particular",
       "Instructions": [
         {
-          "$Comment": "Breeding state",
-          "Enabled": { "Compute":  "IsBreedable" },
           "Sensor": {
             "Type": "State",
-            "State": "Breeding"
+            "State": "Idle"
           },
           "Instructions": [
             {
-              "$Comment": "When in a breeding state, Seek out other NPC of same type, send them message to attempt mate.",
               "Sensor": {
-                "Type": "Mob",
-                "Range": 20,
-                "GetPlayers": false,
-                "Filters": [
-                  {
-                    "Type": "NPCGroup",
-                    "IncludeGroups": [
-                      "Self"
-                    ]
-                  }
-                ]
+                "Type": "Beacon",
+                "Message": "StartBreeding"
               },
               "Actions": [
                 {
-                  "Type": "DisplayName",
-                  "DisplayName": "OTHER HORNY COW DETECTED."
+                  "Type": "State",
+                  "State": "Breeding"
                 }
               ]
             }
           ]
         },
         {
-          "$Comment": "Idle state",
+          "$Comment": "Breeding state",
+          "Enabled": true,
+          "Sensor": {
+            "Type": "State",
+            "State": "Breeding"
+          },
           "Instructions": [
             {
+              "Continue":  true,
+              "Actions": [
+                {
+                  "Type": "DisplayName",
+                  "DisplayName": "Searching for mate"
+                }
+              ]
+            },
+            {
               "Sensor": {
-                "Type": "State",
-                "State": "Idle"
+                "Type": "Mob",
+                "Range": 50,
+                "Filters": [
+                  {
+                    "Type": "NPCGroup",
+                    "IncludeGroups": [ "Self" ]
+                  }
+                ]
               },
               "Actions": [
                 {
-                  "Type": "State",
-                  "State": "Breeding"
+                  "Type": "DisplayName",
+                  "DisplayName": "FOUND MATE"
+                }
+              ]
+            },
+            {
+              "Actions": [
+                {
+                  "Type": "Timeout",
+                  "Delay": [5.0, 5.0],
+                  "Action": {
+                    "Type": "State",
+                    "State": "Idle"
+                  }
                 }
               ]
             }
