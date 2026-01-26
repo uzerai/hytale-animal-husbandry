@@ -349,6 +349,15 @@
     {
       "States": [
         {
+          "From": [],
+          "To": ["Breeding"]
+        }
+      ],
+      "Actions": []
+    },
+    {
+      "States": [
+        {
           "From": [ "Idle" ],
           "To": [ "Sleep" ]
         }
@@ -444,31 +453,6 @@
     }
   },
   "Instructions": [
-    {
-      "$Comment": "Custodian logic so domesticated animals behave somewhat the same",
-      "Enabled": { "Compute":  "IsDomesticable" },
-      "Continue": true,
-      "Instructions": [
-        {
-          "$Comment": "If a close player is a custodian, just remain friendly towards them",
-          "Sensor": {
-            "Type": "Player",
-            "Range": 10,
-            "Filters": [
-              {
-                "Type": "IsCustodian"
-              }
-            ]
-          },
-          "Actions": [
-            {
-              "Type": "OverrideAttitude",
-              "Attitude": "Friendly"
-            }
-          ]
-        }
-      ]
-    },
     {
       "$Comment": "This is separate so it can run all the time regardless of the rest of the script",
       "Continue": true,
@@ -1066,7 +1050,6 @@
             "Type": "State",
             "State": "Breeding"
           },
-          "ActionsBlocking": true,
           "Instructions": [
             {
               "Continue": true,
@@ -1082,6 +1065,19 @@
             },
             {
               "Instructions": [
+                {
+                  "Continue": true,
+                  "Actions": [
+                    {
+                      "Type": "Timeout",
+                      "Delay": [30, 40],
+                      "Action": {
+                        "Type": "State",
+                        "State": "Idle"
+                      }
+                    }
+                  ]
+                },
                 {
                   "$Comment": "When receiving a SpawnChild message from another NPC of the same type",
                   "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
@@ -1158,19 +1154,6 @@
                       "State": "Idle"
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "Continue": true,
-              "Actions": [
-                {
-                  "Type": "Timeout",
-                  "Delay": [30, 35],
-                  "Action": {
-                    "Type": "State",
-                    "State": "Idle"
-                  }
                 }
               ]
             }
@@ -2713,6 +2696,24 @@
           },
           "Instructions": [
             {
+              "Continue": true,
+              "$Comment": "Set state back to idle after 2-3 sec",
+              "Sensor": {
+                "Type": "Any",
+                "Once": true
+              },
+              "Actions": [
+                {
+                  "Type": "Timeout",
+                  "Delay": [2, 3]
+                },
+                {
+                  "Type": "State",
+                  "State": "Idle"
+                }
+              ]
+            },
+            {
               "$Comment": "Set alarm",
               "Continue": true,
               "Sensor": {
@@ -2740,24 +2741,6 @@
                   "Type": "Spawn",
                   "Kind": { "Compute": "ChildRole" },
                   "CountRange":  [1,2]
-                }
-              ]
-            },
-            {
-              "$Comment": "Set state back to idle",
-              "ActionsBlocking": true,
-              "Sensor": {
-                "Type": "Any",
-                "Once": true
-              },
-              "Actions": [
-                {
-                  "Type": "Timeout",
-                  "Delay": [2, 3]
-                },
-                {
-                  "Type": "State",
-                  "State": "Idle"
                 }
               ]
             }
@@ -2791,7 +2774,7 @@
                     "Filters": [
                       {
                         "Type": "ItemInHand",
-                        "Hand": "Both",
+                        "Hand": "Main",
                         "Items": { "Compute":  "LovedItems" }
                       }
                     ]
@@ -2824,19 +2807,12 @@
                   ]
                 },
                 {
-                  "Type": "Or",
-                  "Sensors": [
-                    {
-                      "Type": "Alarm",
-                      "Name": "Feed_Timeout",
-                      "State": "Passed"
-                    },
-                    {
-                      "Type": "Alarm",
-                      "Name": "Feed_Timeout",
-                      "State": "Unset"
-                    }
-                  ]
+                  "Type": "Not",
+                  "Sensor": {
+                    "Type": "Alarm",
+                    "Name": "Feed_Timeout",
+                    "State": "Set"
+                  }
                 }
               ]
             },
@@ -2850,17 +2826,15 @@
             ]
           },
           {
-            "$Comment": "Allow the interaction to happen when already a custodian, and breeding is available.",
+            "$Comment": "Allow the interaction to happen",
             "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
             "Sensor": {
               "Type": "And",
               "Sensors":  [
                 {
-                  "Type": "Target",
+                  "Type": "Player",
+                  "Range": 4,
                   "Filters": [
-                    {
-                      "Type": "IsCustodian"
-                    },
                     {
                       "Type": "ItemInHand",
                       "Hand": "Main",
@@ -2869,50 +2843,72 @@
                   ]
                 },
                 {
-                  "Type": "Or",
-                  "Sensors": [
-                    {
-                      "Type": "Alarm",
-                      "Name": "BreedTimeout",
-                      "State": "Unset"
-                    },
-                    {
-                      "Type": "Alarm",
-                      "Name": "BreedTimeout",
-                      "State": "Passed"
-                    }
-                  ]
-                },
-                {
                   "Type": "HasInteracted"
                 }
               ]
             },
-            "Actions": [
+            "Instructions": [
               {
-                "Type": "Inventory",
-                "UseTarget": true,
-                "Operation": "RemoveHeldItem",
-                "Count":  1
+                "$Comment": "Always remove the held item. It's being eaten.",
+                "Continue": true,
+                "Sensor": {
+                  "Type": "Target"
+                },
+                "Actions": [
+                  {
+                    "Type": "Inventory",
+                    "UseTarget": true,
+                    "Operation": "RemoveHeldItem",
+                    "Count":  1
+                  },
+                  {
+                    "Type": "SetAlarm",
+                    "Name": "Feed_Timeout",
+                    "DurationRange": { "Compute":  "FeedTimeout" }
+                  }
+                ]
               },
               {
-                "Type": "SetAlarm",
-                "Name": "Feed_Timeout",
-                "DurationRange": { "Compute":  "FeedTimeout" }
+                "Continue": true,
+                "$Comment": "If they are a custodian, BREEDING TIME.",
+                "Sensor": {
+                  "Type": "And",
+                  "Sensors": [
+                    {
+                      "Type": "Target",
+                      "Filters": [
+                        {
+                          "Type": "IsCustodian"
+                        }
+                      ]
+                    },
+                    {
+                      "Type": "Or",
+                      "Sensors": [
+                        {
+                          "Type": "Alarm",
+                          "Name": "BreedTimeout",
+                          "State": "Unset"
+                        },
+                        {
+                          "Type": "Alarm",
+                          "Name": "BreedTimeout",
+                          "State": "Passed"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "Actions": [
+                  {
+                    "Type": "State",
+                    "State": "Breeding"
+                  }
+                ]
               },
               {
-                "Type": "State",
-                "State": "Breeding"
-              }
-            ]
-          },
-          {
-            "$Comment": "Allow the interaction to happen",
-            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
-            "Sensor": {
-              "Type": "And",
-              "Sensors":  [
-                {
+                "$Comment": "If the feeding person isn't a custodian, try to make it one.",
+                "Sensor": {
                   "Type": "Target",
                   "Filters": [
                     {
@@ -2920,58 +2916,39 @@
                       "Filter": {
                         "Type": "IsCustodian"
                       }
-                    },
-                    {
-                      "Type": "ItemInHand",
-                      "Hand": "Main",
-                      "Items": { "Compute": "LovedItems" }
                     }
                   ]
                 },
-                {
-                  "Type": "HasInteracted"
-                }
-              ]
-            },
-            "Actions": [
-              {
-                "Type": "Inventory",
-                "UseTarget": true,
-                "Operation": "RemoveHeldItem",
-                "Count":  1
-              },
-              {
-                "Type": "SetAlarm",
-                "Name": "Feed_Timeout",
-                "DurationRange": { "Compute":  "FeedTimeout" }
-              },
-              {
-                "Type": "Random",
                 "Actions": [
                   {
-                    "Action": {
-                      "Type": "Sequence",
-                      "Actions": [
-                        {
-                          "Type": "SetDomesticated",
-                          "AddCustodianFromTarget":  true
+                    "Type": "Random",
+                    "Actions": [
+                      {
+                        "Action": {
+                          "Type": "Sequence",
+                          "Actions": [
+                            {
+                              "Type": "SetDomesticated",
+                              "AddCustodianFromTarget":  true
+                            },
+                            {
+                              "Type": "SpawnParticles",
+                              "Offset": [ 0, 1, 0 ],
+                              "ParticleSystem": "Hearts_Subtle"
+                            }
+                          ]
                         },
-                        {
+                        "Weight": 2
+                      },
+                      {
+                        "Action": {
                           "Type": "SpawnParticles",
                           "Offset": [ 0, 1, 0 ],
-                          "ParticleSystem": "Hearts_Subtle"
-                        }
-                      ]
-                    },
-                    "Weight": 2
-                  },
-                  {
-                    "Action": {
-                      "Type": "SpawnParticles",
-                      "Offset": [ 0, 1, 0 ],
-                      "ParticleSystem": "Sheep_Wool_Shear"
-                    },
-                    "Weight": 3
+                          "ParticleSystem": "Sheep_Wool_Shear"
+                        },
+                        "Weight": 3
+                      }
+                    ]
                   }
                 ]
               }
