@@ -1,0 +1,204 @@
+{
+  "Type": "Component",
+  "Class": "Instruction",
+  "Parameters": {
+    "_ImportStates": [ "Breeding" ],
+    "FeedingItems": {
+      "Value": [ "Empty" ],
+      "Description": "Items that can be fed to the animal to domesticate them."
+    },
+    "FeedingCooldownDuration": {
+      "Value": [ "PT1M", "PT2M" ],
+      "Description": "Cooldown between possibilities to interact to feed the animal."
+    },
+    "AllowBreedInteraction": {
+      "Value": false,
+      "Description": "If the animal should be allowed to breed if fed by a custodian"
+    }
+  },
+  "Content": {
+    "Instructions": [
+      {
+        "$Comment": "If the animal currently cannot be fed, due to previous feeding.",
+        "Enabled": { "Compute":  "!isEmptyStringArray(FeedingItems)" },
+        "Sensor": {
+          "Type": "Or",
+          "Sensors": [
+            {
+              "Type": "Alarm",
+              "Name": "FeedingCooldown",
+              "State":  "Set"
+            },
+            {
+              "Type": "Not",
+              "Sensor": {
+                "Type": "Target",
+                "Filters": [
+                  {
+                    "Type": "ItemInHand",
+                    "Hand": "Main",
+                    "Items": { "Compute":  "FeedingItems" }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "Actions": [
+          {
+            "Type": "SetInteractable",
+            "Interactable": false
+          }
+        ]
+      },
+      {
+        "$Comment": "Make the NPC interactable when holding the feeding item, and player is current target of the NPC",
+        "Enabled": { "Compute":  "!isEmptyStringArray(FeedingItems)" },
+        "Continue": true,
+        "Sensor": {
+          "Type": "And",
+          "Sensors": [
+            {
+              "Type": "Target",
+              "Filters": [
+                {
+                  "Type": "ItemInHand",
+                  "Hand": "Main",
+                  "Items": { "Compute": "FeedingItems" }
+                }
+              ]
+            },
+            {
+              "Type": "Not",
+              "Sensor": {
+                "Type": "Alarm",
+                "Name": "FeedingCooldown",
+                "State": "Set"
+              }
+            }
+          ]
+        },
+        "Actions": [
+          {
+            "Type": "SetInteractable",
+            "Interactable": true,
+            "ShowPrompt": true,
+            "Hint": "animal_husbandry.interactionHints.feedAnimal"
+          }
+        ]
+      },
+      {
+        "$Comment": "Allow the interaction to happen",
+        "Enabled": { "Compute":  "!isEmptyStringArray(FeedingItems)" },
+        "Sensor": {
+          "Type": "And",
+          "Sensors":  [
+            {
+              "Type": "Target",
+              "Filters": [
+                {
+                  "Type": "ItemInHand",
+                  "Hand": "Main",
+                  "Items": { "Compute": "FeedingItems" }
+                }
+              ]
+            },
+            {
+              "Type": "HasInteracted"
+            }
+          ]
+        },
+        "Instructions": [
+          {
+            "$Comment": "Always remove the held item. It's being eaten.",
+            "Continue": true,
+            "Sensor": {
+              "Type": "Target"
+            },
+            "Actions": [
+              {
+                "Type": "Inventory",
+                "UseTarget": true,
+                "Operation": "RemoveHeldItem",
+                "Count":  1
+              },
+              {
+                "Type": "SetAlarm",
+                "Name": "FeedingCooldown",
+                "DurationRange": { "Compute":  "FeedingCooldownDuration" }
+              }
+            ]
+          },
+          {
+            "$Comment": "If they are a custodian, enter breeding state, has to happen first, if not they are able to be made a custodian _THEN_ enable breeding in the same feeding interact",
+            "Sensor": {
+              "Type": "And",
+              "Sensors": [
+                {
+                  "Type": "Target",
+                  "Filters": [
+                    {
+                      "Type": "IsCustodian"
+                    }
+                  ]
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "ParentState",
+                "State": "Breeding"
+              }
+            ]
+          },
+          {
+            "$Comment": "If the feeding person isn't a custodian, try to make it one.",
+            "Sensor": {
+              "Type": "Target",
+              "Filters": [
+                {
+                  "Type": "Not",
+                  "Filter": {
+                    "Type": "IsCustodian"
+                  }
+                }
+              ]
+            },
+            "Actions": [
+              {
+                "Type": "Random",
+                "Actions": [
+                  {
+                    "Action": {
+                      "Type": "Sequence",
+                      "Actions": [
+                        {
+                          "Type": "SetDomesticated",
+                          "AddCustodianFromTarget":  true
+                        },
+                        {
+                          "Type": "SpawnParticles",
+                          "Offset": [ 0, 1, 0 ],
+                          "ParticleSystem": "Hearts_Subtle"
+                        }
+                      ]
+                    },
+                    "Weight": 2
+                  },
+                  {
+                    "Action": {
+                      "Type": "SpawnParticles",
+                      "Offset": [ 0, 1, 0 ],
+                      "ParticleSystem": "Sheep_Wool_Shear"
+                    },
+                    "Weight": 3
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

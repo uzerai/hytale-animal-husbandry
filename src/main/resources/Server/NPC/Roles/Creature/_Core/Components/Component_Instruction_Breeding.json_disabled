@@ -1,0 +1,194 @@
+{
+  "$TODO": "Complete splitting this into a separate file -- fails with State sensor or State setter action/motion exists without accompanying state/setter: Breeding",
+  "Type": "Component",
+  "Class": "Instruction",
+  "Parameters": {
+    "_ImportStates": [ "Idle", "Breeding" ],
+    "ChildRole": {
+      "Value": "",
+      "Description": "The role which should be spawned when the NPC has successfully mated."
+    },
+    "BreedingCooldownDuration": {
+      "Value": [ "P2D", "P3D" ],
+      "Description": "Cooldown before another child can be conceived. Mating can still possibly happen though."
+    },
+    "BreedingTargetSlot": {
+      "Value": "",
+      "Description": "A slot for targeting a breeding partner."
+    }
+  },
+  "Content": {
+    "$Comment": "Breeding instructions, enabled check makes sure this is not enabled for animals which can GROW UP STILL.",
+    "Sensor": {
+      "Type": "ParentState",
+      "State": "Breeding"
+    },
+    "Instructions": [
+      {
+        "$Comment": "Starting a timer to get out of breeding state if nothing else got us out of there.",
+        "Continue": true,
+        "ActionsBlocking": true,
+        "Actions": [
+          {
+            "Type": "Timeout",
+            "Delay": [ 15, 20 ]
+          },
+          {
+            "Type": "State",
+            "State": ".TimerEnd"
+          }
+        ]
+      },
+      {
+        "$Comment": "If the timer has ran out, exit early.",
+        "Sensor": {
+          "Type": "State",
+          "State": ".TimerEnd"
+        },
+        "Actions": [
+          {
+            "Type": "ReleaseTarget",
+            "TargetSlot": "BreedingTargetSlot"
+          },
+          {
+            "Type": "ParentState",
+            "State": "Idle"
+          }
+        ]
+      },
+      {
+        "$Comment": "No BreedingTarget yet, keep looking for one.",
+        "Continue": true,
+        "Sensor": {
+          "Type": "Switch",
+          "Switch": { "Compute": "isEmpty(BreedingTargetSlot)" }
+        },
+        "Actions": [
+          {
+            "Type": "Beacon",
+            "Message": "Breedable",
+            "Range": 20,
+            "TargetGroups": [
+              "Self"
+            ]
+          }
+        ]
+      },
+      {
+        "$Comment": "Animal has received SpawnChild messaged; spawning the animal now.",
+        "Sensor": {
+          "Type": "State",
+          "State": ".Spawning"
+        },
+        "Instructions": [
+          {
+            "$Comment": "Set alarm",
+            "Continue": true,
+            "Sensor": {
+              "Type": "Any",
+              "Once": true
+            },
+            "Actions": [
+              {
+                "Type": "SetAlarm",
+                "Name": "BreedTimeout",
+                "DurationRange": { "Compute": "BreedingCooldownDuration" }
+              }
+            ]
+          },
+          {
+            "$Comment": "Spawn the bastard thing",
+            "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+            "Sensor": {
+              "Type": "Any",
+              "Once": true
+            },
+            "Actions": [
+              {
+                "Type": "Spawn",
+                "Kind": { "Compute": "ChildRole" },
+                "CountRange":  [1,2]
+              },
+              {
+                "Type": "ParentState",
+                "State": "Idle"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "$Comment": "When receiving a SpawnChild message from another NPC of the same type",
+        "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+        "Sensor": {
+          "Type": "Beacon",
+          "Message": "SpawnChild",
+          "Range": 2,
+          "ConsumeMessage": true,
+          "Once": true
+        },
+        "Actions": [
+          {
+            "Type": "State",
+            "State": ".Spawning"
+          }
+        ]
+      },
+      {
+        "$Comment": "When receiving a Breedable message from another NPC of the same type, move closer to potential mate",
+        "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+        "Sensor": {
+          "Type": "Beacon",
+          "Message": "Breedable",
+          "TargetSlot": "BreedingTargetSlot",
+          "ConsumeMessage": true
+        },
+        "BodyMotion": {
+          "Type": "MaintainDistance",
+          "DesiredDistanceRange": [
+            1,
+            1.2
+          ]
+        }
+      },
+      {
+        "$Comment": "When close enough, send spawn notification to other entity, whoever is first is arbitrary",
+        "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+        "Sensor": {
+          "Type": "Target",
+          "TargetSlot": "BreedingTargetSlot",
+          "Once": true,
+          "Range": 2
+        },
+        "Actions": [
+          {
+            "Type": "SpawnParticles",
+            "Offset": [ 0, 1, 0 ],
+            "ParticleSystem": "Hearts"
+          },
+          {
+            "Type": "Notify",
+            "Message": "SpawnChild",
+            "UseTargetSlot": "BreedingTargetSlot",
+            "ExpirationTime": 0.1
+          },
+          {
+            "Type": "SetAlarm",
+            "Name": "BreedingCooldown",
+            "DurationRange": {
+              "Compute": "BreedingCooldownDuration"
+            }
+          },
+          {
+            "Type": "ReleaseTarget",
+            "TargetSlot": "BreedingTargetSlot"
+          },
+          {
+            "Type": "ParentState",
+            "State": "Idle"
+          }
+        ]
+      }
+    ]
+  }
+}

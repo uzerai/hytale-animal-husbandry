@@ -353,7 +353,26 @@
           "To": ["Breeding"]
         }
       ],
-      "Actions": []
+      "Actions": [
+        {
+          "Type": "DisplayName",
+          "DisplayName": "Breeding"
+        }
+      ]
+    },
+    {
+      "States": [
+        {
+          "To": [ "Idle" ],
+          "From": []
+        }
+      ],
+      "Actions": [
+        {
+          "Type": "DisplayName",
+          "DisplayName": "Idle"
+        }
+      ]
     },
     {
       "States": [
@@ -1015,7 +1034,7 @@
           ]
         },
         {
-          "$Comment": "Breeding instructions",
+          "$Comment": "Breeding instructions, enabled check makes sure this is not enabled for animals which can GROW UP STILL.",
           "Enabled": { "Compute":  "isEmpty(AdultRole)" },
           "Sensor": {
             "Type": "State",
@@ -1023,11 +1042,57 @@
           },
           "Instructions": [
             {
+              "$Comment": "Starting a timer to get out of breeding state if nothing else got us out of there.",
               "Continue": true,
+              "ActionsBlocking": true,
               "Actions": [
+                {
+                  "Type": "Timeout",
+                  "Delay": [ 15, 20 ]
+                },
+                {
+                  "Type": "State",
+                  "State": ".TimerEnd"
+                }
+              ]
+            },
+            {
+              "$Comment": "If the timer has ran out, exit early.",
+              "Sensor": {
+                "Type": "State",
+                "State": ".TimerEnd"
+              },
+              "Actions": [
+                {
+                  "Type": "DisplayName",
+                  "DisplayName": "Breeding.TimerEnd"
+                },
+                {
+                  "Type": "ReleaseTarget",
+                  "TargetSlot": "BreedingTargetSlot"
+                },
+                {
+                  "Type": "State",
+                  "State": "Idle"
+                }
+              ]
+            },
+            {
+              "$Comment": "No BreedingTarget yet, keep looking for one.",
+              "Continue": true,
+              "Sensor": {
+                "Type": "Switch",
+                "Switch": { "Compute": "isEmpty(BreedingTargetSlot)" }
+              },
+              "Actions": [
+                {
+                  "Type": "DisplayName",
+                  "DisplayName": "Sending breeding beacon"
+                },
                 {
                   "Type": "Beacon",
                   "Message": "Breedable",
+                  "Range": 20,
                   "TargetGroups": [
                     "Self"
                   ]
@@ -1035,96 +1100,117 @@
               ]
             },
             {
+              "$Comment": "Animal has received SpawnChild messaged; spawning the animal now.",
+              "Sensor": {
+                "Type": "State",
+                "State": ".Spawning"
+              },
               "Instructions": [
                 {
+                  "$Comment": "Set alarm",
                   "Continue": true,
-                  "Actions": [
-                    {
-                      "Type": "Timeout",
-                      "Delay": [30, 40],
-                      "Action": {
-                        "Type": "State",
-                        "State": "Idle"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "$Comment": "When receiving a SpawnChild message from another NPC of the same type",
-                  "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
                   "Sensor": {
-                    "Type": "Beacon",
-                    "Message": "SpawnChild",
-                    "Range": 2,
-                    "ConsumeMessage": true,
+                    "Type": "Any",
                     "Once": true
                   },
                   "Actions": [
                     {
-                      "Type": "ReleaseTarget",
-                      "TargetSlot": "BreedingTargetSlot"
-                    },
-                    {
-                      "Type": "State",
-                      "State": "$BreedSpawning"
+                      "Type": "SetAlarm",
+                      "Name": "BreedTimeout",
+                      "DurationRange": { "Compute": "BreedingTimeout" }
                     }
                   ]
                 },
                 {
-                  "$Comment": "When receiving a Breedable message from another NPC of the same type, move closer to potential mate",
-                  "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
-                  "Continue": true,
-                  "Sensor": {
-                    "Type": "Beacon",
-                    "Message": "Breedable",
-                    "TargetSlot": "BreedingTargetSlot",
-                    "ConsumeMessage": true
-                  },
-                  "BodyMotion": {
-                    "Type": "MaintainDistance",
-                    "DesiredDistanceRange": [
-                      1,
-                      1.2
-                    ]
-                  }
-                },
-                {
-                  "$Comment": "When close enough, send spawn notification to other entity, whoever is first is arbitrary",
+                  "$Comment": "Spawn the bastard thing",
                   "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
                   "Sensor": {
-                    "Type": "Target",
-                    "TargetSlot": "BreedingTargetSlot",
-                    "Once": true,
-                    "Range": 2
+                    "Type": "Any",
+                    "Once": true
                   },
                   "Actions": [
                     {
-                      "Type": "SpawnParticles",
-                      "Offset": [ 0, 1, 0 ],
-                      "ParticleSystem": "Hearts"
-                    },
-                    {
-                      "Type": "Notify",
-                      "Message": "SpawnChild",
-                      "UseTargetSlot": "BreedingTargetSlot",
-                      "ExpirationTime": 0.1
-                    },
-                    {
-                      "Type": "SetAlarm",
-                      "Name": "BreedTimeout",
-                      "DurationRange": {
-                        "Compute": "BreedingTimeout"
-                      }
-                    },
-                    {
-                      "Type": "ReleaseTarget",
-                      "TargetSlot": "BreedingTargetSlot"
+                      "Type": "Spawn",
+                      "Kind": { "Compute": "ChildRole" },
+                      "CountRange":  [1,2]
                     },
                     {
                       "Type": "State",
                       "State": "Idle"
                     }
                   ]
+                }
+              ]
+            },
+            {
+              "$Comment": "When receiving a SpawnChild message from another NPC of the same type",
+              "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+              "Sensor": {
+                "Type": "Beacon",
+                "Message": "SpawnChild",
+                "Range": 2,
+                "ConsumeMessage": true,
+                "Once": true
+              },
+              "Actions": [
+                {
+                  "Type": "State",
+                  "State": ".Spawning"
+                }
+              ]
+            },
+            {
+              "$Comment": "When receiving a Breedable message from another NPC of the same type, move closer to potential mate",
+              "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+              "Sensor": {
+                "Type": "Beacon",
+                "Message": "Breedable",
+                "TargetSlot": "BreedingTargetSlot",
+                "ConsumeMessage": true
+              },
+              "BodyMotion": {
+                "Type": "MaintainDistance",
+                "DesiredDistanceRange": [
+                  1,
+                  1.2
+                ]
+              }
+            },
+            {
+              "$Comment": "When close enough, send spawn notification to other entity, whoever is first is arbitrary",
+              "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+              "Sensor": {
+                "Type": "Target",
+                "TargetSlot": "BreedingTargetSlot",
+                "Once": true,
+                "Range": 2
+              },
+              "Actions": [
+                {
+                  "Type": "SpawnParticles",
+                  "Offset": [ 0, 1, 0 ],
+                  "ParticleSystem": "Hearts"
+                },
+                {
+                  "Type": "Notify",
+                  "Message": "SpawnChild",
+                  "UseTargetSlot": "BreedingTargetSlot",
+                  "ExpirationTime": 0.1
+                },
+                {
+                  "Type": "SetAlarm",
+                  "Name": "BreedTimeout",
+                  "DurationRange": {
+                    "Compute": "BreedingTimeout"
+                  }
+                },
+                {
+                  "Type": "ReleaseTarget",
+                  "TargetSlot": "BreedingTargetSlot"
+                },
+                {
+                  "Type": "State",
+                  "State": "Idle"
                 }
               ]
             }
@@ -2658,64 +2744,6 @@
               ]
             }
           ]
-        },
-        {
-          "$Comment": "Breeding spawning logic.",
-          "Sensor": {
-            "Type": "State",
-            "State": "$BreedSpawning"
-          },
-          "Instructions": [
-            {
-              "Continue": true,
-              "$Comment": "Set state back to idle after 2-3 sec",
-              "Sensor": {
-                "Type": "Any",
-                "Once": true
-              },
-              "Actions": [
-                {
-                  "Type": "Timeout",
-                  "Delay": [2, 3]
-                },
-                {
-                  "Type": "State",
-                  "State": "Idle"
-                }
-              ]
-            },
-            {
-              "$Comment": "Set alarm",
-              "Continue": true,
-              "Sensor": {
-                "Type": "Any",
-                "Once": true
-              },
-              "Actions": [
-                {
-                  "Type": "SetAlarm",
-                  "Name": "BreedTimeout",
-                  "DurationRange": { "Compute": "BreedingTimeout" }
-                }
-              ]
-            },
-            {
-              "$Comment": "Spawn the bastard thing",
-              "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
-              "Continue": true,
-              "Sensor": {
-                "Type": "Any",
-                "Once": true
-              },
-              "Actions": [
-                {
-                  "Type": "Spawn",
-                  "Kind": { "Compute": "ChildRole" },
-                  "CountRange":  [1,2]
-                }
-              ]
-            }
-          ]
         }
       ]
     }
@@ -2725,207 +2753,12 @@
     "Instructions": [
       {
         "Enabled": { "Compute":  "IsDomesticable" },
-        "Instructions": [
-          {
-            "$Comment": "If the animal currently cannot be fed, due to previous feeding.",
-            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
-            "Sensor": {
-              "$Comment": "Check the negative first so we can exit early and avoid the rest of the logic",
-              "Type": "Or",
-              "Sensors": [
-                {
-                  "Type": "Alarm",
-                  "Name": "Feed_Timeout",
-                  "State":  "Set"
-                },
-                {
-                  "Type": "Not",
-                  "Sensor": {
-                    "Type": "Target",
-                    "Filters": [
-                      {
-                        "Type": "ItemInHand",
-                        "Hand": "Main",
-                        "Items": { "Compute":  "LovedItems" }
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            "Actions": [
-              {
-                "Type": "SetInteractable",
-                "Interactable": false
-              }
-            ]
-          },
-          {
-            "$Comment": "Make the NPC interactable when holding the loved item (assuming the target from the Curious.Item state)",
-            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
-            "Continue": true,
-            "Sensor": {
-              "Type": "And",
-              "Sensors": [
-                {
-                  "Type": "Target",
-                  "Filters": [
-                    {
-                      "Type": "ItemInHand",
-                      "Hand": "Main",
-                      "Items": { "Compute": "LovedItems" }
-                    }
-                  ]
-                },
-                {
-                  "Type": "Not",
-                  "Sensor": {
-                    "Type": "Alarm",
-                    "Name": "Feed_Timeout",
-                    "State": "Set"
-                  }
-                }
-              ]
-            },
-            "Actions": [
-              {
-                "Type": "SetInteractable",
-                "Interactable": true,
-                "ShowPrompt": true,
-                "Hint": "animal_husbandry.interactionHints.feedAnimal"
-              }
-            ]
-          },
-          {
-            "$Comment": "Allow the interaction to happen",
-            "Enabled": { "Compute":  "!isEmptyStringArray(LovedItems)" },
-            "Sensor": {
-              "Type": "And",
-              "Sensors":  [
-                {
-                  "Type": "Player",
-                  "Range": 4,
-                  "Filters": [
-                    {
-                      "Type": "ItemInHand",
-                      "Hand": "Main",
-                      "Items": { "Compute": "LovedItems" }
-                    }
-                  ]
-                },
-                {
-                  "Type": "HasInteracted"
-                }
-              ]
-            },
-            "Instructions": [
-              {
-                "$Comment": "Always remove the held item. It's being eaten.",
-                "Continue": true,
-                "Sensor": {
-                  "Type": "Target"
-                },
-                "Actions": [
-                  {
-                    "Type": "Inventory",
-                    "UseTarget": true,
-                    "Operation": "RemoveHeldItem",
-                    "Count":  1
-                  },
-                  {
-                    "Type": "SetAlarm",
-                    "Name": "Feed_Timeout",
-                    "DurationRange": { "Compute":  "FeedTimeout" }
-                  }
-                ]
-              },
-              {
-                "Continue": true,
-                "$Comment": "If they are a custodian, BREEDING TIME.",
-                "Sensor": {
-                  "Type": "And",
-                  "Sensors": [
-                    {
-                      "Type": "Target",
-                      "Filters": [
-                        {
-                          "Type": "IsCustodian"
-                        }
-                      ]
-                    },
-                    {
-                      "Type": "Or",
-                      "Sensors": [
-                        {
-                          "Type": "Alarm",
-                          "Name": "BreedTimeout",
-                          "State": "Unset"
-                        },
-                        {
-                          "Type": "Alarm",
-                          "Name": "BreedTimeout",
-                          "State": "Passed"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "Actions": [
-                  {
-                    "Type": "State",
-                    "State": "Breeding"
-                  }
-                ]
-              },
-              {
-                "$Comment": "If the feeding person isn't a custodian, try to make it one.",
-                "Sensor": {
-                  "Type": "Target",
-                  "Filters": [
-                    {
-                      "Type": "Not",
-                      "Filter": {
-                        "Type": "IsCustodian"
-                      }
-                    }
-                  ]
-                },
-                "Actions": [
-                  {
-                    "Type": "Random",
-                    "Actions": [
-                      {
-                        "Action": {
-                          "Type": "Sequence",
-                          "Actions": [
-                            {
-                              "Type": "SetDomesticated",
-                              "AddCustodianFromTarget":  true
-                            },
-                            {
-                              "Type": "SpawnParticles",
-                              "Offset": [ 0, 1, 0 ],
-                              "ParticleSystem": "Hearts_Subtle"
-                            }
-                          ]
-                        },
-                        "Weight": 2
-                      },
-                      {
-                        "Action": {
-                          "Type": "SpawnParticles",
-                          "Offset": [ 0, 1, 0 ],
-                          "ParticleSystem": "Sheep_Wool_Shear"
-                        },
-                        "Weight": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+        "Reference": "Component_InteractionInstruction_Become_Domesticated_When_Fed",
+        "Modify": {
+          "_ExportStates": [ "Breeding" ],
+          "FeedingItems": { "Compute": "LovedItems" },
+          "AllowBreedInteraction": { "Compute": "!isEmpty(ChildRole)" }
+        }
       },
       {
         "Enabled": { "Compute": "IsHarvestable" },
