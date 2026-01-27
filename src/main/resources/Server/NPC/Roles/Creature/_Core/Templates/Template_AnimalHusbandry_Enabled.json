@@ -15,7 +15,7 @@
       "Description": "The role which should be spawned when the NPC has successfully mated."
     },
     "ChildToAdultTimeRange": {
-      "Value": [ "P15D", "P20D" ],
+      "Value": [ "P5D", "P20D" ],
       "Description":  "The time range within which the role should transform into its AdultRole if provided."
     },
     "FeedTimeout": {
@@ -517,41 +517,12 @@
       ]
     },
     {
-      "$Comment": "Handles the growing up and role change of the calf into its parent entity role.",
-      "Continue": true,
-      "Enabled": {
-        "Compute": "!isEmpty(AdultRole)"
-      },
-      "Sensor": {
-        "Type": "Age",
-        "Once": true,
-        "AgeRange": {
-          "Compute": "ChildToAdultTimeRange"
-        }
-      },
-      "Actions": [
-        {
-          "Type": "Role",
-          "Role": {
-            "Compute": "AdultRole"
-          },
-          "ChangeAppearance": true
-        },
-        {
-          "Type": "PlayAnimation",
-          "Slot": "Status",
-          "Animation": "Alerted"
-        },
-        {
-          "Type": "SpawnParticles",
-          "Offset": [ 0, 1, 0 ],
-          "ParticleSystem": { "Compute": "HarvestParticles" }
-        },
-        {
-          "Type": "PlaySound",
-          "SoundEventId": { "Compute": "HarvestSound" }
-        }
-      ]
+      "$Comment": "Separate so it can run at all times. Do animal husbandry growth system.",
+      "Reference": "Component_Instruction_Grow_Up_When_Aged",
+      "Modify": {
+        "AdultRole": { "Compute": "AdultRole" },
+        "ChildToAdultTimeRange": { "Compute": "ChildToAdultTimeRange" }
+      }
     },
     {
       "$Comment": "This is separate so it can run all the time regardless of the rest of the script, when in water go straight to panic to get out",

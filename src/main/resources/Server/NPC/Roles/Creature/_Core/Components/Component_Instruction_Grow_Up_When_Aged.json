@@ -1,0 +1,63 @@
+{
+  "Type": "Component",
+  "Class": "Instruction",
+  "Parameters": {
+    "AdultRole": {
+      "Value": "",
+      "Description": "Adult role to grow into when aged ChildToAdultTimeRange. Instructions disabled if not provided."
+    },
+    "ChildToAdultTimeRange": {
+      "Value": [ "T10D", "T20D" ],
+      "Description": "Age period where the role change to AdultRole will happen."
+    },
+    "GrowUpParticles": {
+      "Value": "Potion_Morph_Burst",
+      "Description": "The particle name to spawn when an entity grows up."
+    },
+    "GrowUpParticlesOffset": {
+      "Value": [ 5, 1, 0],
+      "Description": "Offset for GrowUpParticles, useful when models have different sizes."
+    },
+    "GrowUpSound": {
+      "Value": "SFX_Creative_Play_Eyedropper_Select",
+      "Description": "Sound made when an entity grows up."
+    }
+  },
+  "Content": {
+    "$Comment": "Handles the growing up and role change of the calf into its parent entity role.",
+    "Continue": true,
+    "Enabled": {
+      "Compute": "!isEmpty(AdultRole)"
+    },
+    "Sensor": {
+      "Type": "Age",
+      "Once": true,
+      "AgeRange": {
+        "Compute": "ChildToAdultTimeRange"
+      }
+    },
+    "Actions": [
+      {
+        "Type": "Role",
+        "Role": {
+          "Compute": "AdultRole"
+        },
+        "ChangeAppearance": true
+      },
+      {
+        "Type": "PlayAnimation",
+        "Slot": "Status",
+        "Animation": "Alerted"
+      },
+      {
+        "Type": "SpawnParticles",
+        "Offset": [ 0, 1, 0 ],
+        "ParticleSystem": { "Compute": "GrowUpParticles" }
+      },
+      {
+        "Type": "PlaySound",
+        "SoundEventId": { "Compute": "GrowUpSound" }
+      }
+    ]
+  }
+}

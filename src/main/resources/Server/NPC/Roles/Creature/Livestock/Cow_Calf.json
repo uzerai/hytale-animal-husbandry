@@ -4,10 +4,6 @@
   "Modify": {
     "Appearance": "Calf",
     "AdultRole": "Cow",
-    "ChildToAdultTimeRange": [
-      "P10D",
-      "P20D"
-    ],
     "FlockArray": [
       "Cow_Calf",
       "Cow"
