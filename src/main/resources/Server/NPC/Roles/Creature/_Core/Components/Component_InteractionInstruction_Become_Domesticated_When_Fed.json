@@ -189,7 +189,7 @@
                     "Action": {
                       "Type": "SpawnParticles",
                       "Offset": [ 0, 1, 0 ],
-                      "ParticleSystem": "Sheep_Wool_Shear"
+                      "ParticleSystem": "Stone_Death"
                     },
                     "Weight": 3
                   }

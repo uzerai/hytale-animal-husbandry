@@ -349,30 +349,11 @@
     {
       "States": [
         {
-          "From": [],
-          "To": ["Breeding"]
-        }
-      ],
-      "Actions": [
-        {
-          "Type": "DisplayName",
-          "DisplayName": "Breeding"
-        }
-      ]
-    },
-    {
-      "States": [
-        {
           "To": [ "Idle" ],
           "From": []
         }
       ],
-      "Actions": [
-        {
-          "Type": "DisplayName",
-          "DisplayName": "Idle"
-        }
-      ]
+      "Actions": []
     },
     {
       "States": [
@@ -1048,7 +1029,7 @@
               "Actions": [
                 {
                   "Type": "Timeout",
-                  "Delay": [ 15, 20 ]
+                  "Delay": [ 10, 15 ]
                 },
                 {
                   "Type": "State",
@@ -1063,10 +1044,6 @@
                 "State": ".TimerEnd"
               },
               "Actions": [
-                {
-                  "Type": "DisplayName",
-                  "DisplayName": "Breeding.TimerEnd"
-                },
                 {
                   "Type": "ReleaseTarget",
                   "TargetSlot": "BreedingTargetSlot"
@@ -1085,10 +1062,6 @@
                 "Switch": { "Compute": "isEmpty(BreedingTargetSlot)" }
               },
               "Actions": [
-                {
-                  "Type": "DisplayName",
-                  "DisplayName": "Sending breeding beacon"
-                },
                 {
                   "Type": "Beacon",
                   "Message": "Breedable",
@@ -1118,6 +1091,14 @@
                       "Type": "SetAlarm",
                       "Name": "BreedTimeout",
                       "DurationRange": { "Compute": "BreedingTimeout" }
+                    },
+                    {
+                      "Type": "PlaySound",
+                      "SoundEventId": "SFX_Plushie_Build"
+                    },
+                    {
+                      "Type": "SpawnParticles",
+                      "ParticleSystem": "Potion_Health_Implosion"
                     }
                   ]
                 },
