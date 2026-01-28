@@ -26,11 +26,18 @@ ext {
     }
 }
 
-if (!project.hasProperty('hytaleHome')) {
-    throw new GradleException('Your Hytale install could not be detected automatically. If you are on an unsupported platform or using a custom install location, please define the install location using the hytale_home property.');
-}
-else if (!file(project.findProperty('hytaleHome')).exists()) {
-    throw new GradleException("Failed to find Hytale at the expected location. Please make sure you have installed the game. The expected location can be changed using the hytale_home property. Currently looking in ${project.findProperty('hytaleHome')}")
+// Skip Hytale installation check when running in CI (GitHub Actions sets CI=true)
+def isCI = System.getenv('CI') == 'true'
+
+if (!isCI) {
+    if (!project.hasProperty('hytaleHome')) {
+        throw new GradleException('Your Hytale install could not be detected automatically. If you are on an unsupported platform or using a custom install location, please define the install location using the hytale_home property.');
+    }
+    else if (!file(project.findProperty('hytaleHome')).exists()) {
+        throw new GradleException("Failed to find Hytale at the expected location. Please make sure you have installed the game. The expected location can be changed using the hytale_home property. Currently looking in ${project.findProperty('hytaleHome')}")
+    }
+} else {
+    logger.lifecycle('Running in CI environment - skipping Hytale installation check')
 }
 
 java {
