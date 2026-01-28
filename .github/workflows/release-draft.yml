@@ -1,0 +1,170 @@
+name: Update Draft Release
+
+on:
+  push:
+    branches:
+      - main
+    # Don't run when tags are pushed - that's handled by release-publish
+    tags-ignore:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  update-draft:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Grant execute permission for Gradle
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build --stacktrace
+
+      - name: Get current version from gradle.properties
+        id: get_version
+        run: |
+          VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)
+          echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Calculate next version
+        id: next_version
+        run: |
+          # Get the latest tag (or default to v0.0.0 if none exists)
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+          
+          # Strip 'v' prefix if present
+          LATEST_VERSION=${LATEST_TAG#v}
+          
+          # Parse semver components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_VERSION"
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
+          
+          # Analyze commits since last tag to determine version bump
+          COMMITS=$(git log ${LATEST_TAG}..HEAD --oneline 2>/dev/null || git log --oneline)
+          
+          BUMP_TYPE="patch"
+          
+          # Check for breaking changes (major bump)
+          if echo "$COMMITS" | grep -qiE "^[a-f0-9]+ [a-z]+(\(.+\))?!:|BREAKING CHANGE"; then
+            BUMP_TYPE="major"
+          # Check for features (minor bump)
+          elif echo "$COMMITS" | grep -qiE "^[a-f0-9]+ feat(\(.+\))?:"; then
+            BUMP_TYPE="minor"
+          fi
+          
+          # Calculate new version
+          case $BUMP_TYPE in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "Next version: v$NEW_VERSION (bump type: $BUMP_TYPE)"
+          echo "next_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "next_tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog preview
+        id: changelog
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          echo "## Changes since ${LATEST_TAG:-initial commit}" > changelog_preview.md
+          echo "" >> changelog_preview.md
+          
+          # Get commits since last tag, grouped by type
+          if [ -n "$LATEST_TAG" ]; then
+            COMMIT_RANGE="${LATEST_TAG}..HEAD"
+          else
+            COMMIT_RANGE="HEAD"
+          fi
+          
+          # Features
+          FEATURES=$(git log $COMMIT_RANGE --oneline --grep="^feat" --pretty=format:"- %s (%h)" 2>/dev/null || true)
+          if [ -n "$FEATURES" ]; then
+            echo "### Features" >> changelog_preview.md
+            echo "$FEATURES" >> changelog_preview.md
+            echo "" >> changelog_preview.md
+          fi
+          
+          # Fixes
+          FIXES=$(git log $COMMIT_RANGE --oneline --grep="^fix" --pretty=format:"- %s (%h)" 2>/dev/null || true)
+          if [ -n "$FIXES" ]; then
+            echo "### Bug Fixes" >> changelog_preview.md
+            echo "$FIXES" >> changelog_preview.md
+            echo "" >> changelog_preview.md
+          fi
+          
+          # Other changes
+          OTHERS=$(git log $COMMIT_RANGE --oneline --pretty=format:"- %s (%h)" 2>/dev/null | grep -viE "^- (feat|fix)" || true)
+          if [ -n "$OTHERS" ]; then
+            echo "### Other Changes" >> changelog_preview.md
+            echo "$OTHERS" >> changelog_preview.md
+            echo "" >> changelog_preview.md
+          fi
+          
+          # If no categorized commits, show all
+          if [ ! -s changelog_preview.md ] || [ $(wc -l < changelog_preview.md) -le 2 ]; then
+            echo "### Changes" >> changelog_preview.md
+            git log $COMMIT_RANGE --oneline --pretty=format:"- %s (%h)" >> changelog_preview.md 2>/dev/null || echo "- Initial release" >> changelog_preview.md
+          fi
+          
+          echo "" >> changelog_preview.md
+          echo "---" >> changelog_preview.md
+          echo "_This is a draft release. Publish it to finalize the version._" >> changelog_preview.md
+          
+          cat changelog_preview.md
+          
+          # Set multiline output
+          {
+            echo "changelog<<EOF"
+            cat changelog_preview.md
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Create or update draft release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ steps.next_version.outputs.next_version }}
+          name: v${{ steps.next_version.outputs.next_version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: true
+          prerelease: false
+          allowUpdates: true
+          updateOnlyUnreleased: true
+          replacesArtifacts: true
+          artifacts: |
+            build/libs/*.jar
+            !build/libs/*-javadoc.jar
+            !build/libs/*-sources.jar
+          artifactContentType: application/java-archive
+          token: ${{ github.token }}
+          commit: ${{ github.sha }}
