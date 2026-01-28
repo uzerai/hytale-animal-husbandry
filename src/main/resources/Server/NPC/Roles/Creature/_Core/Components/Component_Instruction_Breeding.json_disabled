@@ -2,8 +2,9 @@
   "$TODO": "Complete splitting this into a separate file -- fails with State sensor or State setter action/motion exists without accompanying state/setter: Breeding",
   "Type": "Component",
   "Class": "Instruction",
+  "DefaultState": ".Default",
   "Parameters": {
-    "_ImportStates": [ "Idle", "Breeding" ],
+    "_ImportStates": [ "Idle" ],
     "ChildRole": {
       "Value": "",
       "Description": "The role which should be spawned when the NPC has successfully mated."
@@ -18,20 +19,19 @@
     }
   },
   "Content": {
-    "$Comment": "Breeding instructions, enabled check makes sure this is not enabled for animals which can GROW UP STILL.",
-    "Sensor": {
-      "Type": "ParentState",
-      "State": "Breeding"
-    },
     "Instructions": [
       {
+        "Sensor": {
+          "Type": "State",
+          "State": ".Default"
+        },
         "$Comment": "Starting a timer to get out of breeding state if nothing else got us out of there.",
         "Continue": true,
         "ActionsBlocking": true,
         "Actions": [
           {
             "Type": "Timeout",
-            "Delay": [ 15, 20 ]
+            "Delay": [ 10, 15 ]
           },
           {
             "Type": "State",
@@ -91,8 +91,16 @@
             "Actions": [
               {
                 "Type": "SetAlarm",
-                "Name": "BreedTimeout",
+                "Name": "BreedCooldown",
                 "DurationRange": { "Compute": "BreedingCooldownDuration" }
+              },
+              {
+                "Type": "PlaySound",
+                "SoundEventId": "SFX_Plushie_Build"
+              },
+              {
+                "Type": "SpawnParticles",
+                "ParticleSystem": "Potion_Health_Implosion"
               }
             ]
           },
@@ -174,7 +182,7 @@
           },
           {
             "Type": "SetAlarm",
-            "Name": "BreedingCooldown",
+            "Name": "BreedCooldown",
             "DurationRange": {
               "Compute": "BreedingCooldownDuration"
             }
