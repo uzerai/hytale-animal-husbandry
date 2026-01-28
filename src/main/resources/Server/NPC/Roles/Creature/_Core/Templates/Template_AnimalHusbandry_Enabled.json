@@ -349,15 +349,6 @@
     {
       "States": [
         {
-          "To": [ "Idle" ],
-          "From": []
-        }
-      ],
-      "Actions": []
-    },
-    {
-      "States": [
-        {
           "From": [ "Idle" ],
           "To": [ "Sleep" ]
         }
@@ -1076,12 +1067,50 @@
               "$Comment": "Animal has received SpawnChild messaged; spawning the animal now.",
               "Sensor": {
                 "Type": "State",
-                "State": ".Spawning"
+                "State": ".Spawning",
+                "Once": true
               },
               "Instructions": [
                 {
+                  "$Comment": "Spawn the bastard thing",
+                  "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+                  "Sensor": {
+                    "Type": "Or",
+                    "Sensors": [
+                      {
+                        "Type": "Alarm",
+                        "Name": "BreedTimeout",
+                        "State": "Passed"
+                      },
+                      {
+                        "Type": "Alarm",
+                        "Name": "BreedTimeout",
+                        "State": "Unset"
+                      }
+                    ]
+                  },
+                  "Actions": [
+                    {
+                      "Type": "Spawn",
+                      "Kind": { "Compute": "ChildRole" },
+                      "CountRange":  [1,2]
+                    },
+                    {
+                      "Type": "PlaySound",
+                      "SoundEventId": "SFX_Plushie_Build"
+                    },
+                    {
+                      "Type": "SpawnParticles",
+                      "ParticleSystem": "Potion_Health_Implosion"
+                    },
+                    {
+                      "Type": "State",
+                      "State": "Idle"
+                    }
+                  ]
+                },
+                {
                   "$Comment": "Set alarm",
-                  "Continue": true,
                   "Sensor": {
                     "Type": "Any",
                     "Once": true
@@ -1091,33 +1120,6 @@
                       "Type": "SetAlarm",
                       "Name": "BreedTimeout",
                       "DurationRange": { "Compute": "BreedingTimeout" }
-                    },
-                    {
-                      "Type": "PlaySound",
-                      "SoundEventId": "SFX_Plushie_Build"
-                    },
-                    {
-                      "Type": "SpawnParticles",
-                      "ParticleSystem": "Potion_Health_Implosion"
-                    }
-                  ]
-                },
-                {
-                  "$Comment": "Spawn the bastard thing",
-                  "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
-                  "Sensor": {
-                    "Type": "Any",
-                    "Once": true
-                  },
-                  "Actions": [
-                    {
-                      "Type": "Spawn",
-                      "Kind": { "Compute": "ChildRole" },
-                      "CountRange":  [1,2]
-                    },
-                    {
-                      "Type": "State",
-                      "State": "Idle"
                     }
                   ]
                 }
@@ -1143,6 +1145,7 @@
             {
               "$Comment": "When receiving a Breedable message from another NPC of the same type, move closer to potential mate",
               "Enabled": { "Compute":  "!isEmpty(ChildRole)" },
+              "Continue": true,
               "Sensor": {
                 "Type": "Beacon",
                 "Message": "Breedable",
