@@ -148,6 +148,21 @@
                       "Type": "IsCustodian"
                     }
                   ]
+                },
+                {
+                  "Type": "Or",
+                  "Sensors": [
+                    {
+                      "Type": "Alarm",
+                      "Name": "BreedTimeout",
+                      "State": "Unset"
+                    },
+                    {
+                      "Type": "Alarm",
+                      "Name": "BreedTimeout",
+                      "State": "Passed"
+                    }
+                  ]
                 }
               ]
             },

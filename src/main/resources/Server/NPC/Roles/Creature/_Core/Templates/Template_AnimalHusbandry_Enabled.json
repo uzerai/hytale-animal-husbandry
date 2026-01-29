@@ -26,7 +26,7 @@
       "Value": true,
       "Description": "Indication that the animal can be domesticated."
     },
-    "BreedingTimeout": {
+    "BreedingCooldownDuration": {
       "Value": [ "P2D", "P3D" ],
       "Description": "Timeout before child can be birthed"
     },
@@ -1104,6 +1104,11 @@
                       "ParticleSystem": "Potion_Health_Implosion"
                     },
                     {
+                      "Type": "SetAlarm",
+                      "Name": "BreedTimeout",
+                      "DurationRange": { "Compute": "BreedingCooldownDuration" }
+                    },
+                    {
                       "Type": "State",
                       "State": "Idle"
                     }
@@ -1119,7 +1124,7 @@
                     {
                       "Type": "SetAlarm",
                       "Name": "BreedTimeout",
-                      "DurationRange": { "Compute": "BreedingTimeout" }
+                      "DurationRange": { "Compute": "BreedingCooldownDuration" }
                     }
                   ]
                 }
@@ -1185,7 +1190,7 @@
                   "Type": "SetAlarm",
                   "Name": "BreedTimeout",
                   "DurationRange": {
-                    "Compute": "BreedingTimeout"
+                    "Compute": "BreedingCooldownDuration"
                   }
                 },
                 {
@@ -2863,7 +2868,7 @@
       },
       {
         "Enabled": { "Compute":  "IsDomesticable" },
-        "Reference": "Component_InteractionInstruction_Become_Domesticated_When_Fed",
+        "Reference": "Component_InteractionInstruction_FeedAnimal",
         "Modify": {
           "_ExportStates": [ "Breeding" ],
           "FeedingItems": { "Compute": "LovedItems" },
