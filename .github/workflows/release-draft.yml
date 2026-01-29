@@ -49,17 +49,17 @@ jobs:
         run: |
           # Get the latest tag
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           echo "## Changes since ${LATEST_TAG:-initial commit}" > changelog_preview.md
           echo "" >> changelog_preview.md
-          
+
           # Get commits since last tag, grouped by type
           if [ -n "$LATEST_TAG" ]; then
             COMMIT_RANGE="${LATEST_TAG}..HEAD"
           else
             COMMIT_RANGE="HEAD"
           fi
-          
+
           # Features
           FEATURES=$(git log $COMMIT_RANGE --oneline --grep="^feat" --pretty=format:"- %s (%h)" 2>/dev/null || true)
           if [ -n "$FEATURES" ]; then
@@ -67,7 +67,7 @@ jobs:
             echo "$FEATURES" >> changelog_preview.md
             echo "" >> changelog_preview.md
           fi
-          
+
           # Fixes
           FIXES=$(git log $COMMIT_RANGE --oneline --grep="^fix" --pretty=format:"- %s (%h)" 2>/dev/null || true)
           if [ -n "$FIXES" ]; then
@@ -75,7 +75,7 @@ jobs:
             echo "$FIXES" >> changelog_preview.md
             echo "" >> changelog_preview.md
           fi
-          
+
           # Other changes
           OTHERS=$(git log $COMMIT_RANGE --oneline --pretty=format:"- %s (%h)" 2>/dev/null | grep -viE "^- (feat|fix)" || true)
           if [ -n "$OTHERS" ]; then
@@ -83,32 +83,42 @@ jobs:
             echo "$OTHERS" >> changelog_preview.md
             echo "" >> changelog_preview.md
           fi
-          
+
           # If no categorized commits, show all
-          if [ ! -s changelog_preview.md ] || [ $(wc -l < changelog_preview.md) -le 2 ]; then
+          if [ ! -s changelog_preview.md ] || [ "$(wc -l < changelog_preview.md)" -le 2 ]; then
             echo "### Changes" >> changelog_preview.md
             git log $COMMIT_RANGE --oneline --pretty=format:"- %s (%h)" >> changelog_preview.md 2>/dev/null || echo "- Initial release" >> changelog_preview.md
           fi
-          
+
           echo "" >> changelog_preview.md
           echo "---" >> changelog_preview.md
           echo "_This is a draft release. Publish it to finalize the version._" >> changelog_preview.md
-          
+
           cat changelog_preview.md
-          
-          # Set multiline output
-          {
-            echo "changelog<<EOF"
-            cat changelog_preview.md
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+
+      - name: Append artifact SHA1 hashes
+        run: |
+          if compgen -G "build/libs/*.jar" > /dev/null; then
+            echo "" >> changelog_preview.md
+            echo "### Artifact SHA1 hashes" >> changelog_preview.md
+            echo "" >> changelog_preview.md
+            for f in build/libs/*.jar; do
+              HASH=$(sha1sum "$f" | cut -d' ' -f1)
+              echo "- $(basename "$f"): \`$HASH\`" >> changelog_preview.md
+            done
+          else
+            echo "No JAR artifacts found for hashing." >&2
+          fi
+
+          echo "" >> changelog_preview.md
+          cat changelog_preview.md
 
       - name: Create or update draft release
         uses: ncipollo/release-action@v1
         with:
           tag: v${{ steps.next_version.outputs.version }}
           name: v${{ steps.next_version.outputs.version }}
-          body: ${{ steps.changelog.outputs.changelog }}
+          bodyFile: changelog_preview.md
           draft: true
           prerelease: false
           allowUpdates: true
