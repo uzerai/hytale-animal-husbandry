@@ -2736,15 +2736,6 @@
     "Enabled": { "Compute": "IsHarvestable || IsMountable || IsDomesticable" },
     "Instructions": [
       {
-        "Enabled": { "Compute":  "IsDomesticable" },
-        "Reference": "Component_InteractionInstruction_Become_Domesticated_When_Fed",
-        "Modify": {
-          "_ExportStates": [ "Breeding" ],
-          "FeedingItems": { "Compute": "LovedItems" },
-          "AllowBreedInteraction": { "Compute": "!isEmpty(ChildRole)" }
-        }
-      },
-      {
         "Enabled": { "Compute": "IsHarvestable" },
         "Instructions": [
           {
@@ -2815,33 +2806,39 @@
       },
       {
         "Enabled": { "Compute": "IsMountable" },
-        "Instructions": [
-          {
-            "Sensor": {
-              "Type": "Not",
-              "Sensor": {
-                "$Comment": "Check the negative first so we can exit early and avoid the rest of the logic",
-                "Type": "CanInteract",
-                "ViewSector": 360,
-                "Attitudes": [ "Neutral", "Friendly", "Hostile" ]
-              }
-            },
-            "Actions": [
+        "Sensor": {
+          "Type": "Not",
+          "Sensor": {
+            "Type": "Target",
+            "Filters": [
               {
-                "Type": "SetInteractable",
-                "Interactable": false
+                "Type": "ItemInHand",
+                "Hand": "Main",
+                "Items": { "Compute": "LovedItems" }
               }
             ]
-          },
+          }
+        },
+        "Instructions": [
           {
             "Continue": true,
             "Sensor": {
-              "Type": "Any"
+              "$Comment": "Check the negative first so we can exit early and avoid the rest of the logic",
+              "Type": "CanInteract",
+              "ViewSector": 360,
+              "Attitudes": [ "Neutral", "Friendly", "Hostile" ]
             },
+            "ActionsBlocking": true,
             "Actions": [
               {
                 "Type": "SetInteractable",
+                "Interactable": false,
+                "ShowPrompt": false
+              },
+              {
+                "Type": "SetInteractable",
                 "Interactable": true,
+                "ShowPrompt": true,
                 "Hint": "server.interactionHints.mount"
               }
             ]
@@ -2861,6 +2858,15 @@
             ]
           }
         ]
+      },
+      {
+        "Enabled": { "Compute":  "IsDomesticable" },
+        "Reference": "Component_InteractionInstruction_Become_Domesticated_When_Fed",
+        "Modify": {
+          "_ExportStates": [ "Breeding" ],
+          "FeedingItems": { "Compute": "LovedItems" },
+          "AllowBreedInteraction": { "Compute": "!isEmpty(ChildRole)" }
+        }
       }
     ]
   },

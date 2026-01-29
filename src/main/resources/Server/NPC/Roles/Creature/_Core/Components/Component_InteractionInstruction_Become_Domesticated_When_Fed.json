@@ -81,6 +81,11 @@
         "Actions": [
           {
             "Type": "SetInteractable",
+            "Interactable": false,
+            "ShowPrompt": false
+          },
+          {
+            "Type": "SetInteractable",
             "Interactable": true,
             "ShowPrompt": true,
             "Hint": "animal_husbandry.interactionHints.feedAnimal"
