@@ -52,15 +52,9 @@ jobs:
 
           # Update the Version field in manifest.json to match
           if [ -f "src/main/resources/manifest.json" ]; then
-            python - <<EOF
-import json
-from pathlib import Path
-
-path = Path("src/main/resources/manifest.json")
-data = json.loads(path.read_text())
-data["Version"] = "${VERSION}"
-path.write_text(json.dumps(data, indent=4))
-EOF
+            tmpfile=$(mktemp)
+            jq --arg v "$VERSION" '.Version = $v' src/main/resources/manifest.json > "$tmpfile"
+            mv "$tmpfile" src/main/resources/manifest.json
             echo "Updated src/main/resources/manifest.json Version to $VERSION"
           else
             echo "src/main/resources/manifest.json not found; skipping manifest version update" >&2
@@ -74,6 +68,7 @@ EOF
             chore(release): bump version to ${{ steps.release_version.outputs.version }} [skip ci]
             
             - Updated gradle.properties version
+            - Updated manifest.json Version
             - Updated CHANGELOG.md
           file_pattern: gradle.properties CHANGELOG.md src/main/resources/manifest.json
           commit_user_name: github-actions[bot]
