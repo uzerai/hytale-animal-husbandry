@@ -1,0 +1,81 @@
+name: Publish Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-release:
+    runs-on: ubuntu-latest
+    # Only run for releases that were drafts (our managed releases)
+    if: github.event.release.draft == false
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get release version
+        id: release_version
+        run: |
+          # Extract version from tag (strip 'v' prefix)
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Released version: $VERSION"
+
+      - name: Update CHANGELOG
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          tag: ${{ github.event.release.tag_name }}
+          writeToFile: true
+          changelogFilePath: CHANGELOG.md
+
+      - name: Update version in gradle.properties and manifest.json
+        run: |
+          VERSION="${{ steps.release_version.outputs.version }}"
+          
+          # Update the version line in gradle.properties
+          sed -i "s/^version=.*/version=$VERSION/" gradle.properties
+          
+          echo "Updated gradle.properties to version $VERSION"
+          grep "^version=" gradle.properties
+
+          # Update the Version field in manifest.json to match
+          if [ -f "src/main/resources/manifest.json" ]; then
+            python - <<EOF
+import json
+from pathlib import Path
+
+path = Path("src/main/resources/manifest.json")
+data = json.loads(path.read_text())
+data["Version"] = "${VERSION}"
+path.write_text(json.dumps(data, indent=4))
+EOF
+            echo "Updated src/main/resources/manifest.json Version to $VERSION"
+          else
+            echo "src/main/resources/manifest.json not found; skipping manifest version update" >&2
+          fi
+
+      - name: Commit version bump and changelog
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          branch: main
+          commit_message: |
+            chore(release): bump version to ${{ steps.release_version.outputs.version }} [skip ci]
+            
+            - Updated gradle.properties version
+            - Updated CHANGELOG.md
+          file_pattern: gradle.properties CHANGELOG.md src/main/resources/manifest.json
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com
+
