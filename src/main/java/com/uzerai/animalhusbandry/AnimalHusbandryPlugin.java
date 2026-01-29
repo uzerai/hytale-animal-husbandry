@@ -8,10 +8,13 @@ import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.Config;
 import com.hypixel.hytale.server.npc.NPCPlugin;
-import com.uzerai.animalhusbandry.config.AnimalHusbandry;
+import com.hypixel.hytale.server.npc.corecomponents.lifecycle.ActionSpawn;
+import com.uzerai.animalhusbandry.config.AnimalHusbandryConfig;
 import com.uzerai.animalhusbandry.domestication.DomesticatedComponent;
 import com.uzerai.animalhusbandry.domestication.actions.ActionSetDomesticated;
+import com.uzerai.animalhusbandry.domestication.actions.ActionSpawnDomesticated;
 import com.uzerai.animalhusbandry.domestication.actions.builders.BuilderActionSetDomesticated;
+import com.uzerai.animalhusbandry.domestication.actions.builders.BuilderActionSpawnDomesticated;
 import com.uzerai.animalhusbandry.domestication.filters.EntityFilterIsCustodian;
 import com.uzerai.animalhusbandry.domestication.filters.builders.BuilderEntityFilterIsCustodian;
 import com.uzerai.animalhusbandry.domestication.sensors.SensorTargetIsCustodian;
@@ -23,33 +26,29 @@ import com.uzerai.animalhusbandry.domestication.sensors.builders.BuilderSensorTa
  */
 public class AnimalHusbandryPlugin extends JavaPlugin {
     public static AnimalHusbandryPlugin INSTANCE;
-    private final Config<AnimalHusbandry> config = this.withConfig("AnimalHusbandry", AnimalHusbandry.CODEC);
+    private final Config<AnimalHusbandryConfig> config = this.withConfig("AnimalHusbandry", AnimalHusbandryConfig.CODEC);
     private ComponentType<EntityStore, DomesticatedComponent> domesticatedComponentComponentType;
     public AnimalHusbandryPlugin(@Nonnull JavaPluginInit init) {
         super(init);
         INSTANCE = this;
     }
 
-    public AnimalHusbandry getConfig(){
+    public AnimalHusbandryConfig getConfig(){
         return this.config.get();
     }
 
-
     @Override
     protected void setup() {
-        // TODO: Add breeding system
-        // TODO: Add ownership / tameness system, to override avoidance for NPCs which are "tamed" by the player.
+        // TODO: Better feeding / custodian system (more complex behaviours)
         // - When interacting with an animal, feeding it will add to its tameness for that player.
         //      When a threshold is hit, it will be considered tame and can be named by the player.
         // - This should remove the avoidance behaviour towards that player entity, and increase the
         //      follow behaviour chance of the animal such that if the tamer (player) is holding their loved
-        //      food, they will always follow.
-        // - Animals born of two tame animals (if breeding enabled), will also be tame against the same player.
+        //      food, they will always follow. (SOMEWHAT completed)
         // TODO: Add feeding to accelerate growth (?)
 
         domesticatedComponentComponentType = getEntityStoreRegistry()
                 .registerComponent(DomesticatedComponent.class, "Domesticated", DomesticatedComponent.CODEC);
-
 
         NPCPlugin.get().registerCoreComponentType(
                 ActionSetDomesticated.TYPE,
@@ -64,6 +63,11 @@ public class AnimalHusbandryPlugin extends JavaPlugin {
         NPCPlugin.get().registerCoreComponentType(
                 EntityFilterIsCustodian.TYPE,
                 BuilderEntityFilterIsCustodian::new
+        );
+
+        NPCPlugin.get().registerCoreComponentType(
+                ActionSpawnDomesticated.TYPE,
+                BuilderActionSpawnDomesticated::new
         );
     }
 

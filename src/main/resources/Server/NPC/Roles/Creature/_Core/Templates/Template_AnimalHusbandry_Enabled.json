@@ -1091,7 +1091,7 @@
                   },
                   "Actions": [
                     {
-                      "Type": "Spawn",
+                      "Type": "SpawnDomesticated",
                       "Kind": { "Compute": "ChildRole" },
                       "CountRange":  [1,2]
                     },

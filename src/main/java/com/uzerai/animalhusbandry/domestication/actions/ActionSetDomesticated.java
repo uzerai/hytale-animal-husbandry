@@ -6,6 +6,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.corecomponents.ActionBase;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.sensorinfo.InfoProvider;
 import com.uzerai.animalhusbandry.AnimalHusbandryPlugin;
@@ -69,6 +70,12 @@ public class ActionSetDomesticated extends ActionBase {
             AnimalHusbandryPlugin.INSTANCE.getLogger().atInfo().log("Adding %s to custodians.", targetUuid);
 
             component.addCustodian(targetUuid);
+
+            // Prevents despawning of domesticated animals.
+            if (AnimalHusbandryPlugin.INSTANCE.getConfig().domesticatedCullingDisabled()){
+                NPCEntity npcComponent = store.getComponent(ref, NPCEntity.getComponentType());
+                npcComponent.setSpawnConfiguration(Integer.MIN_VALUE);
+            }
         }
 
         return true;
