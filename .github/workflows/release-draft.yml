@@ -96,23 +96,6 @@ jobs:
 
           cat changelog_preview.md
 
-      - name: Append artifact SHA1 hashes
-        run: |
-          if compgen -G "build/libs/*.jar" > /dev/null; then
-            echo "" >> changelog_preview.md
-            echo "### Artifact SHA1 hashes" >> changelog_preview.md
-            echo "" >> changelog_preview.md
-            for f in build/libs/*.jar; do
-              HASH=$(sha1sum "$f" | cut -d' ' -f1)
-              echo "- $(basename "$f"): \`$HASH\`" >> changelog_preview.md
-            done
-          else
-            echo "No JAR artifacts found for hashing." >&2
-          fi
-
-          echo "" >> changelog_preview.md
-          cat changelog_preview.md
-
       - name: Create or update draft release
         uses: ncipollo/release-action@v1
         with:
