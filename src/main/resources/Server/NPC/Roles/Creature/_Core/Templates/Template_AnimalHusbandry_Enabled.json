@@ -15,11 +15,11 @@
       "Description": "The role which should be spawned when the NPC has successfully mated."
     },
     "ChildToAdultTimeRange": {
-      "Value": [ "P5D", "P20D" ],
+      "Value": [ "P5D", "P1Y" ],
       "Description":  "The time range within which the role should transform into its AdultRole if provided."
     },
     "FeedTimeout": {
-      "Value": [ "PT1M", "PT2M" ],
+      "Value": [ "PT1M", "PT1M" ],
       "Description": "The timeout between possible feed events"
     },
     "IsDomesticable": {
@@ -27,7 +27,7 @@
       "Description": "Indication that the animal can be domesticated."
     },
     "BreedingCooldownDuration": {
-      "Value": [ "P2D", "P3D" ],
+      "Value": [ "P2D", "P2D" ],
       "Description": "Timeout before child can be birthed"
     },
     "BreedingTargetSlot": {

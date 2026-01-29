@@ -18,7 +18,6 @@ public class AnimalHusbandryConfig {
                     .add()
                     .build();
 
-
     public AnimalHusbandryConfig() {}
 
     public boolean domesticatedCullingDisabled()
@@ -30,6 +29,6 @@ public class AnimalHusbandryConfig {
     @Nonnull
     @Override
     public String toString() {
-        return String.format("AnimalHusbandryConfig {}");
+        return String.format("AnimalHusbandryConfig { disableDomesticatedCulling: %s }", disableDomesticatedCulling);
     }
 }
