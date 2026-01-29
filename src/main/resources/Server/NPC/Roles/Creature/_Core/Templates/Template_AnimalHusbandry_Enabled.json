@@ -2831,6 +2831,8 @@
             "ActionsBlocking": true,
             "Actions": [
               {
+                "$TODO": "TODO: Find fix that doesn't require this extra command manager flush",
+                "$Comment": "Only fix that I found to interaction menu not updating when 2 sensor sets intersect partially",
                 "Type": "SetInteractable",
                 "Interactable": false,
                 "ShowPrompt": false
